@@ -1,0 +1,4 @@
+# Единые окончания строк (LF) на Windows и в CI на Linux
+* text=auto eol=lf
+*.png binary
+*.ico binary
