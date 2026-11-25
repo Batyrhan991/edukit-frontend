@@ -270,6 +270,89 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/credits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Баланс кредитов и цены операций — показываются до запуска генерации. */
+        get: operations["GetCredits"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/generators/ksp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Запустить генерацию КСП. Заголовок Idempotency-Key обязателен: повтор с тем же ключом не списывает кредиты повторно. */
+        post: operations["GenerateKsp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/generations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** История генераций за 30 дней. */
+        get: operations["ListGenerations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/generations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetGeneration"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/generations/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CancelGeneration"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/mfa/verify": {
         parameters: {
             query?: never;
@@ -455,8 +538,54 @@ export interface components {
         AuthProvidersResponse: {
             google: boolean;
         };
+        CreditBalanceResponse: {
+            /** Format: int32 */
+            balance: number | string;
+            /** Format: int32 */
+            reserved: number | string;
+            plan: string;
+            /** Format: int32 */
+            monthlyGrant: number | string;
+            /** Format: date-time */
+            cycleEnd: string;
+            prices: components["schemas"]["CreditOperationPrice"][];
+            testValues: boolean;
+        };
+        CreditOperationPrice: {
+            tool: string;
+            /** Format: int32 */
+            credits: number | string;
+        };
         FeatureFlagUpdateRequest: {
             enabled: boolean;
+        };
+        GenerationListItem: {
+            /** Format: uuid */
+            id: string;
+            tool: string;
+            status: string;
+            title: string;
+            mock: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        GenerationResponse: {
+            /** Format: uuid */
+            id: string;
+            tool: string;
+            status: string;
+            language: string;
+            /** Format: int32 */
+            creditsReserved: number | string;
+            /** Format: int32 */
+            creditsCharged: number | string;
+            mock: boolean;
+            errorCode: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            finishedAt: null | string;
+            ksp: null | components["schemas"]["KspDocument"];
         };
         HttpValidationProblemDetails: {
             type?: null | string;
@@ -468,6 +597,57 @@ export interface components {
             errors?: {
                 [key: string]: string[];
             };
+        };
+        KspBlock: {
+            kind: string;
+            label: null | string;
+            text: string;
+        };
+        KspDocument: {
+            topic: string;
+            subject: string;
+            grade: string;
+            lessonType: string;
+            lessonObjectives: string[];
+            learningObjectives: components["schemas"]["KspLearningObjective"][];
+            passport: components["schemas"]["KspPassportStage"][];
+            flow: components["schemas"]["KspFlowStage"][];
+            differentiation: null | string;
+            assessment: null | string;
+            homework: null | string;
+            resources: string[];
+            sources: components["schemas"]["KspSource"][];
+            warnings: string[];
+        };
+        KspFlowStage: {
+            stage: string;
+            blocks: components["schemas"]["KspBlock"][];
+        };
+        KspLearningObjective: {
+            code: string;
+            text: string;
+        };
+        KspPassportStage: {
+            stage: string;
+            /** Format: int32 */
+            minutes: number | string;
+            teacherActivity: string;
+            studentActivity: string;
+        };
+        KspRequest: {
+            subject: string;
+            grade: string;
+            topic: string;
+            /** Format: int32 */
+            durationMinutes: number | string;
+            lessonType: null | string;
+            lessonObjectives: null | string[];
+            notes: null | string;
+            language: string;
+        };
+        KspSource: {
+            id: string;
+            title: string;
         };
         LoginRequest: {
             login: string;
@@ -937,6 +1117,136 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    GetCredits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreditBalanceResponse"];
+                };
+            };
+        };
+    };
+    GenerateKsp: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KspRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+        };
+    };
+    ListGenerations: {
+        parameters: {
+            query?: {
+                limit?: number | string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationListItem"][];
+                };
+            };
+        };
+    };
+    GetGeneration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
+            };
+        };
+    };
+    CancelGeneration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
             };
         };
     };

@@ -6,6 +6,9 @@ export type Session = Schemas["SessionResponse"];
 export type LoginResponse = Schemas["LoginResponse"];
 export type MfaStatus = Schemas["MfaStatusResponse"];
 export type SignInMethods = Schemas["SignInMethodsResponse"];
+export type KspDocument = Schemas["KspDocument"];
+export type Generation = Schemas["GenerationResponse"];
+export type Credits = Schemas["CreditBalanceResponse"];
 
 /** Ответ API в браузере: либо данные, либо разобранная ошибка. */
 export type ApiProblem = { status: number; code?: string; errors?: Record<string, string[]> };
@@ -41,8 +44,13 @@ export function googleErrorKey(value: string | null): AuthErrorKey | null {
 }
 
 /** Запрос к API через same-origin прокси сайта. Изменяющие запросы несут CSRF-заголовок (ADR-0016). */
-export async function api(method: "GET" | "POST" | "PUT" | "DELETE", path: string, body?: unknown): Promise<Response> {
-  const headers: Record<string, string> = { accept: "application/json" };
+export async function api(
+  method: "GET" | "POST" | "PUT" | "DELETE",
+  path: string,
+  body?: unknown,
+  extraHeaders?: Record<string, string>,
+): Promise<Response> {
+  const headers: Record<string, string> = { accept: "application/json", ...extraHeaders };
   if (method !== "GET") headers["X-EduKit-Csrf"] = "1";
   if (body !== undefined) headers["content-type"] = "application/json";
 

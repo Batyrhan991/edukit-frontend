@@ -79,6 +79,8 @@ test.describe("sign-in with Google: messages and steps", () => {
 
   test("Google button is hidden when the server has no Google key", async ({ page }) => {
     test.skip(google, "API is configured with a Google key");
+    const providers = await page.request.get("/api/v1/auth/providers");
+    test.skip(providers.ok() && (await providers.json()).google === true, "This API has a Google key (user-secrets)");
     await page.goto("/ru/login");
     await expect(page.getByLabel("Почта или логин")).toBeVisible();
     await expect(page.getByRole("link", { name: "Войти через Google" })).toHaveCount(0);
