@@ -1,0 +1,9 @@
+# Конфигурация сканера секретов. Используются стандартные правила Gitleaks.
+[extend]
+useDefault = true
+
+# Единственное исключение: заведомо локальные пароли контейнеров разработки и тестов.
+# Они не дают доступа ни к одной среде, кроме компьютера разработчика.
+[[allowlists]]
+description = "Local-only development and test database passwords"
+regexes = ['''edukit_(dev|test)_only''']

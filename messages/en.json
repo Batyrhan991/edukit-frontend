@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "title": "EduKit — a platform for teachers in Kazakhstan",
+    "description": "An education platform: AI tools for lesson preparation, classroom games, assignments and a gradebook. In development."
+  },
+  "nav": {
+    "skipToContent": "Skip to content",
+    "main": "Main navigation",
+    "features": "Features",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "status": "System status",
+    "design": "Design system",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System"
+  },
+  "landing": {
+    "badge": "In development. Closed pilot",
+    "title": "Less routine, more time for students",
+    "subtitle": "EduKit helps teachers in Kazakhstan prepare lessons, run classroom games, check student work and keep a gradebook in Kazakh, Russian and English.",
+    "pilotNote": "The platform is in development. Sign-up will open for closed pilot participants; working features will be enabled step by step.",
+    "featuresTitle": "What EduKit will offer",
+    "plannedLabel": "Planned",
+    "features": {
+      "ai": {
+        "title": "AI generators",
+        "text": "12 categories of teaching materials: lesson plans, term plans, summative assessments, tests, presentations and more. Every result is editable."
+      },
+      "games": {
+        "title": "Classroom games",
+        "text": "14 game templates for classes of up to 30 participants. Game results never affect grades."
+      },
+      "assessment": {
+        "title": "Assignments and gradebook",
+        "text": "Assignments, AI-assisted checking and a gradebook. The teacher approves every grade."
+      },
+      "organizations": {
+        "title": "Schools and classes",
+        "text": "Workspaces for directors, deputies, homeroom teachers, teachers and students with separated access."
+      }
+    },
+    "pricingTitle": "Pricing",
+    "pricingNote": "Prices are approved. The amount of AI credits in each plan will be set after measurements during the pilot. EduKit is free for students.",
+    "perMonth": "per month",
+    "plans": {
+      "free": "Free",
+      "pro": "Pro",
+      "premium": "Premium"
+    },
+    "faqTitle": "Frequently asked questions",
+    "faq": [
+      {
+        "q": "When can I sign up?",
+        "a": "The platform will first open for a closed pilot with teachers. The date will be announced separately."
+      },
+      {
+        "q": "Do students pay?",
+        "a": "No. Students use EduKit for free and have no access to paid features."
+      },
+      {
+        "q": "Where is data stored?",
+        "a": "Personal data is planned to be stored in Kazakhstan. The cloud provider is still being selected; real student data is not used until the review is complete."
+      }
+    ],
+    "sample": {
+      "caption": "This is how a generated lesson plan will be structured. Example without real data.",
+      "subject": "Mathematics, grade 6",
+      "rows": [
+        "Lesson topic",
+        "Learning objectives",
+        "Assessment criteria",
+        "Lesson flow",
+        "Differentiation",
+        "Reflection",
+        "Homework"
+      ]
+    }
+  },
+  "status": {
+    "title": "System status",
+    "intro": "The EduKit server reports which modules are enabled. A module is enabled only after its phase is accepted.",
+    "apiVersion": "API version",
+    "build": "Build",
+    "modulesTitle": "Modules",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "unavailableTitle": "Server unavailable",
+    "unavailableText": "Could not get a response from the API. Make sure the server is running and try again.",
+    "modules": {
+      "identity": "Accounts and sign-in",
+      "ai.generators": "AI generators",
+      "ai.chat": "AI chat",
+      "documents": "Documents",
+      "presentations": "Presentations",
+      "library": "Library",
+      "billing": "Subscriptions and credits",
+      "billing.real-payments": "Real payments",
+      "games": "Games",
+      "organizations": "Schools and classes",
+      "assignments": "Assignments",
+      "gradebook": "Gradebook",
+      "student": "Student workspace",
+      "admin": "Administration",
+      "integrations.kundelik": "Kundelik integration"
+    }
+  },
+  "design": {
+    "title": "Ocean Blue design system",
+    "intro": "Color tokens, typography and standard interface states. Kazakh letters are checked on this page.",
+    "colorsTitle": "Colors",
+    "typographyTitle": "Noto Sans typeface",
+    "kazakhSample": "Kazakh alphabet",
+    "buttonsTitle": "Buttons",
+    "primary": "Primary action",
+    "secondary": "Secondary",
+    "outline": "Outline",
+    "disabled": "Disabled",
+    "statesTitle": "States"
+  },
+  "states": {
+    "loading": "Loading…",
+    "emptyTitle": "Nothing here yet",
+    "emptyText": "Your materials will appear here.",
+    "errorTitle": "Something went wrong",
+    "errorText": "Please try again. If the error persists, send the request code to support.",
+    "offlineTitle": "No internet connection",
+    "offlineText": "Changes will be saved when the connection is restored.",
+    "successTitle": "Done",
+    "successText": "Changes saved.",
+    "forbiddenTitle": "Access denied",
+    "forbiddenText": "You do not have permission to view this section.",
+    "retry": "Try again",
+    "home": "Go to home"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "The address may be mistyped or the page may have moved."
+  },
+  "footer": {
+    "note": "EduKit prototype. Do not use real student data."
+  }
+}
