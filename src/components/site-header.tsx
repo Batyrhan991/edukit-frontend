@@ -32,6 +32,12 @@ export function SiteHeader({ locale, t }: { locale: Locale; t: Dictionary }) {
           </ul>
         </nav>
         <div className="ml-auto flex items-center gap-2">
+          <Link
+            href={`/${locale}/login`}
+            className="flex h-9 items-center bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            {t.nav.signIn}
+          </Link>
           <LocaleSwitcher current={locale} label={t.nav.language} />
           <ThemeSwitcher
             labels={{
