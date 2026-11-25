@@ -9,7 +9,7 @@ const API_URL = process.env.EDUKIT_API_URL ?? "http://localhost:5080";
 const MAX_BODY_BYTES = 1_000_000;
 const TIMEOUT_MS = 15_000;
 
-const forwardedRequestHeaders = ["accept", "accept-language", "content-type", "cookie", "user-agent", "x-correlation-id", "x-edukit-csrf"];
+const forwardedRequestHeaders = ["accept", "accept-language", "content-type", "cookie", "idempotency-key", "user-agent", "x-correlation-id", "x-edukit-csrf"];
 // location — перенаправления входа через Google (на accounts.google.com и обратно на страницы сайта).
 const forwardedResponseHeaders = ["content-type", "x-correlation-id", "retry-after", "location"];
 

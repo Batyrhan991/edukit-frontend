@@ -8,6 +8,7 @@ export type Me = components["schemas"]["MeResponse"];
 export type Session = components["schemas"]["SessionResponse"];
 export type MfaStatus = components["schemas"]["MfaStatusResponse"];
 export type SignInMethods = components["schemas"]["SignInMethodsResponse"];
+export type Credits = components["schemas"]["CreditBalanceResponse"];
 export type AdminOverview = components["schemas"]["AdminOverviewResponse"];
 export type AuditEntry = components["schemas"]["AuditEntryResponse"];
 
@@ -78,6 +79,12 @@ export async function getSignInMethods(): Promise<ApiResult<SignInMethods>> {
   const token = await sessionToken();
   if (!token) return { ok: false, reason: "unauthorized", status: 401 };
   return call(() => apiClient(token).GET("/api/v1/account/sign-in-methods", { signal: AbortSignal.timeout(5000) }));
+}
+
+export async function getCredits(): Promise<ApiResult<Credits>> {
+  const token = await sessionToken();
+  if (!token) return { ok: false, reason: "unauthorized", status: 401 };
+  return call(() => apiClient(token).GET("/api/v1/credits", { signal: AbortSignal.timeout(5000) }));
 }
 
 export async function getAdminOverview(): Promise<ApiResult<AdminOverview>> {

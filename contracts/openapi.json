@@ -421,6 +421,187 @@
         }
       }
     },
+    "/api/v1/credits": {
+      "get": {
+        "tags": [
+          "Generators"
+        ],
+        "summary": "Баланс кредитов и цены операций — показываются до запуска генерации.",
+        "operationId": "GetCredits",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditBalanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generators/ksp": {
+      "post": {
+        "tags": [
+          "Generators"
+        ],
+        "summary": "Запустить генерацию КСП. Заголовок Idempotency-Key обязателен: повтор с тем же ключом не списывает кредиты повторно.",
+        "operationId": "GenerateKsp",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KspRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generations": {
+      "get": {
+        "tags": [
+          "Generators"
+        ],
+        "summary": "История генераций за 30 дней.",
+        "operationId": "ListGenerations",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GenerationListItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generations/{id}": {
+      "get": {
+        "tags": [
+          "Generators"
+        ],
+        "operationId": "GetGeneration",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generations/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Generators"
+        ],
+        "operationId": "CancelGeneration",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/mfa/verify": {
       "post": {
         "tags": [
@@ -779,6 +960,80 @@
           }
         }
       },
+      "CreditBalanceResponse": {
+        "required": [
+          "balance",
+          "reserved",
+          "plan",
+          "monthlyGrant",
+          "cycleEnd",
+          "prices",
+          "testValues"
+        ],
+        "type": "object",
+        "properties": {
+          "balance": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "reserved": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "plan": {
+            "type": "string"
+          },
+          "monthlyGrant": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "cycleEnd": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "prices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreditOperationPrice"
+            }
+          },
+          "testValues": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreditOperationPrice": {
+        "required": [
+          "tool",
+          "credits"
+        ],
+        "type": "object",
+        "properties": {
+          "tool": {
+            "type": "string"
+          },
+          "credits": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "FeatureFlagUpdateRequest": {
         "required": [
           "enabled"
@@ -787,6 +1042,116 @@
         "properties": {
           "enabled": {
             "type": "boolean"
+          }
+        }
+      },
+      "GenerationListItem": {
+        "required": [
+          "id",
+          "tool",
+          "status",
+          "title",
+          "mock",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "mock": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "GenerationResponse": {
+        "required": [
+          "id",
+          "tool",
+          "status",
+          "language",
+          "creditsReserved",
+          "creditsCharged",
+          "mock",
+          "errorCode",
+          "createdAt",
+          "finishedAt",
+          "ksp"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tool": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "creditsReserved": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "creditsCharged": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "mock": {
+            "type": "boolean"
+          },
+          "errorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "ksp": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/KspDocument"
+              }
+            ]
           }
         }
       },
@@ -834,6 +1199,253 @@
                 "type": "string"
               }
             }
+          }
+        }
+      },
+      "KspBlock": {
+        "required": [
+          "kind",
+          "label",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "label": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "KspDocument": {
+        "required": [
+          "topic",
+          "subject",
+          "grade",
+          "lessonType",
+          "lessonObjectives",
+          "learningObjectives",
+          "passport",
+          "flow",
+          "differentiation",
+          "assessment",
+          "homework",
+          "resources",
+          "sources",
+          "warnings"
+        ],
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "lessonType": {
+            "type": "string"
+          },
+          "lessonObjectives": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "learningObjectives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KspLearningObjective"
+            }
+          },
+          "passport": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KspPassportStage"
+            }
+          },
+          "flow": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KspFlowStage"
+            }
+          },
+          "differentiation": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "assessment": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "homework": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KspSource"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "KspFlowStage": {
+        "required": [
+          "stage",
+          "blocks"
+        ],
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string"
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KspBlock"
+            }
+          }
+        }
+      },
+      "KspLearningObjective": {
+        "required": [
+          "code",
+          "text"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "KspPassportStage": {
+        "required": [
+          "stage",
+          "minutes",
+          "teacherActivity",
+          "studentActivity"
+        ],
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string"
+          },
+          "minutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "teacherActivity": {
+            "type": "string"
+          },
+          "studentActivity": {
+            "type": "string"
+          }
+        }
+      },
+      "KspRequest": {
+        "required": [
+          "subject",
+          "grade",
+          "topic",
+          "durationMinutes",
+          "lessonType",
+          "lessonObjectives",
+          "notes",
+          "language"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "durationMinutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "lessonType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "lessonObjectives": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "language": {
+            "type": "string"
+          }
+        }
+      },
+      "KspSource": {
+        "required": [
+          "id",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
           }
         }
       },
@@ -1179,6 +1791,9 @@
     },
     {
       "name": "Account"
+    },
+    {
+      "name": "Generators"
     },
     {
       "name": "Admin"

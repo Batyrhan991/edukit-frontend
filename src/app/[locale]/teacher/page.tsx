@@ -59,7 +59,12 @@ async function TeacherHome() {
         </div>
       </div>
       <div className="squared-paper border border-border p-6">
-        <p className="max-w-prose bg-card p-4">{t.cabinet.intro}</p>
+        <div className="max-w-prose space-y-4 bg-card p-4">
+          <p>{t.cabinet.intro}</p>
+          <Button asChild>
+            <Link href={`/${locale}/teacher/ksp`}>{t.cabinet.kspLink}</Link>
+          </Button>
+        </div>
       </div>
     </section>
   );
