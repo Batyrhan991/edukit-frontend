@@ -10,7 +10,7 @@ export default async function Page() {
     <AuthCard title={t.auth.loginTitle}>
       {/* Форма читает параметры адреса — отрисовывается в браузере внутри Suspense. */}
       <Suspense fallback={<LoadingPanel label={t.states.loading} />}>
-        <LoginForm t={t.auth} locale={locale} />
+        <LoginForm t={t.auth} mfa={t.mfa} locale={locale} />
       </Suspense>
     </AuthCard>
   );

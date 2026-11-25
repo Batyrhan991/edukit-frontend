@@ -43,7 +43,15 @@ async function TeacherHome() {
             {fmt(t.cabinet.greeting, { name: me.data.firstName })}
           </h1>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {me.data.baseRole === "PlatformAdmin" ? (
+            <Button asChild>
+              <Link href={`/${locale}/admin`}>{t.admin.title}</Link>
+            </Button>
+          ) : null}
+          <Button asChild variant="secondary">
+            <Link href={`/${locale}/settings/security`}>{t.cabinet.securityLink}</Link>
+          </Button>
           <Button asChild variant="secondary">
             <Link href={`/${locale}/settings/sessions`}>{t.cabinet.sessionsLink}</Link>
           </Button>

@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
-import { api, fieldErrors, problemKey, readProblem, type AuthErrorKey } from "@/lib/api/browser";
+import { api, fieldErrors, problemKey, readProblem, type AuthErrorKey, type LoginResponse } from "@/lib/api/browser";
 import { fmt } from "@/lib/format";
 import { safeNext } from "@/lib/navigation";
 import { Field, PasswordInput, TextInput } from "./form-parts";
@@ -50,9 +50,10 @@ function ResendConfirmation({ t, email }: { t: T; email: string }) {
   );
 }
 
-export function LoginForm({ t, locale }: Props) {
+export function LoginForm({ t, locale, mfa }: Props & { mfa: Dictionary["mfa"] }) {
   const router = useRouter();
   const params = useSearchParams();
+  const [step, setStep] = useState<"password" | "mfa">("password");
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
@@ -72,7 +73,13 @@ export function LoginForm({ t, locale }: Props) {
     setBusy(true);
     const response = await api("POST", "/auth/login", { login: login.trim(), password, rememberMe: remember });
     if (response.ok) {
-      router.replace(safeNext(params.get("next"), locale));
+      const result = (await response.json()) as LoginResponse;
+      if (result.next === "mfa") {
+        setStep("mfa");
+        setBusy(false);
+        return;
+      }
+      router.replace(result.next === "mfa_setup" ? `/${locale}/settings/security` : safeNext(params.get("next"), locale));
       router.refresh();
       return;
     }
@@ -80,6 +87,19 @@ export function LoginForm({ t, locale }: Props) {
     setErrors(fieldErrors(problem));
     setError(problemKey(problem));
     setBusy(false);
+  }
+
+  if (step === "mfa") {
+    return (
+      <MfaStep
+        t={t}
+        mfa={mfa}
+        onDone={() => {
+          router.replace(safeNext(params.get("next"), locale));
+          router.refresh();
+        }}
+      />
+    );
   }
 
   return (
@@ -123,6 +143,70 @@ export function LoginForm({ t, locale }: Props) {
           </Link>
         </span>
       </div>
+    </form>
+  );
+}
+
+/** Второй шаг входа: код из приложения или резервный код (ADR-0029). */
+function MfaStep({ t, mfa, onDone }: { t: T; mfa: Dictionary["mfa"]; onDone: () => void }) {
+  const [useRecovery, setUseRecovery] = useState(false);
+  const [value, setValue] = useState("");
+  const [error, setError] = useState<AuthErrorKey | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!value.trim()) return;
+    setBusy(true);
+    setError(null);
+    const response = await api("POST", "/auth/mfa/verify", useRecovery ? { recoveryCode: value.trim() } : { code: value.trim() });
+    if (response.ok) {
+      onDone();
+      return;
+    }
+    const problem = await readProblem(response);
+    // Незавершённый вход закрывается после 5 ошибок: тогда сервер отвечает 401/403 — начинаем вход заново.
+    setError(problem.status === 401 || problem.status === 403 ? "invalidCredentials" : problemKey(problem));
+    setBusy(false);
+  }
+
+  return (
+    <form onSubmit={submit} noValidate className="space-y-4">
+      <div>
+        <h2 className="text-lg font-semibold">{mfa.title}</h2>
+        <p className="text-muted-foreground">{useRecovery ? mfa.recoveryHint : mfa.intro}</p>
+      </div>
+      <Field label={useRecovery ? mfa.recoveryCode : mfa.code}>
+        {(a) => (
+          <TextInput
+            {...a}
+            key={useRecovery ? "recovery" : "code"}
+            name={useRecovery ? "recoveryCode" : "code"}
+            autoComplete="one-time-code"
+            inputMode={useRecovery ? "text" : "numeric"}
+            maxLength={useRecovery ? 32 : 6}
+            autoFocus
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className="font-mono tracking-widest"
+          />
+        )}
+      </Field>
+      <FormError t={t} error={error} />
+      <Button type="submit" className="h-10 w-full" disabled={busy}>
+        {busy ? t.submitting : mfa.submit}
+      </Button>
+      <button
+        type="button"
+        className="text-sm text-primary underline-offset-4 hover:underline"
+        onClick={() => {
+          setUseRecovery(!useRecovery);
+          setValue("");
+          setError(null);
+        }}
+      >
+        {useRecovery ? mfa.useApp : mfa.useRecovery}
+      </button>
     </form>
   );
 }

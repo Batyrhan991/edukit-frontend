@@ -8,6 +8,7 @@ describe("problemKey", () => {
     [{ status: 401, code: "auth.invalid_credentials" }, "invalidCredentials"],
     [{ status: 403, code: "auth.email_not_confirmed" }, "emailNotConfirmed"],
     [{ status: 400, code: "auth.invalid_token" }, "invalidToken"],
+    [{ status: 400, code: "auth.invalid_code" }, "invalidCode"],
     [{ status: 404, code: "feature.disabled" }, "moduleDisabled"],
     [{ status: 503, code: "api.unreachable" }, "unavailable"],
     [{ status: 502 }, "unavailable"],
