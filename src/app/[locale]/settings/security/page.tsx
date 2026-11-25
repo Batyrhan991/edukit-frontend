@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { GoogleConnection } from "@/components/auth/google-connection";
 import { SecurityPanel } from "@/components/auth/security-panel";
 import { LoadingPanel, StatePanel } from "@/components/state-panel";
 import { getDictionary } from "@/i18n/dictionaries";
-import { getMfaStatus } from "@/lib/api/server";
+import { getMfaStatus, getSignInMethods } from "@/lib/api/server";
 
 export default async function SecurityPage() {
   const { locale, t } = await getDictionary();
@@ -27,10 +28,18 @@ export default async function SecurityPage() {
 /** Доступна и администратору, которому сервер разрешает только настройку двухэтапного входа. */
 async function Security() {
   const { locale, t } = await getDictionary();
-  const status = await getMfaStatus();
+  const [status, methods] = await Promise.all([getMfaStatus(), getSignInMethods()]);
   if (!status.ok) {
     if (status.reason === "unauthorized" || status.reason === "forbidden") redirect(`/${locale}/login?next=/${locale}/settings/security`);
     return <StatePanel variant="error" title={status.reason === "disabled" ? t.auth.errors.moduleDisabled : t.auth.errors.unavailable} />;
   }
-  return <SecurityPanel t={t.security} mfa={t.mfa} errors={t.auth.errors} locale={locale} status={status.data} />;
+  return (
+    <div className="space-y-10">
+      <SecurityPanel t={t.security} mfa={t.mfa} errors={t.auth.errors} locale={locale} status={status.data} />
+      {/* Только при завершённом входе (администратору до настройки кода сервер не отдаёт список способов). */}
+      {methods.ok && (methods.data.google || methods.data.googleAvailable) ? (
+        <GoogleConnection t={t.security} locale={locale} methods={methods.data} />
+      ) : null}
+    </div>
+  );
 }

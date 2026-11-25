@@ -187,6 +187,9 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "submitting": "Sending…",
+    "google": "Sign in with Google",
+    "googleRegister": "Sign up with Google",
+    "or": "or",
     "errors": {
       "required": "Fill in this field.",
       "too_long": "The value is too long.",
@@ -201,7 +204,13 @@
       "unavailable": "The EduKit server is unavailable. Check your connection and try again.",
       "moduleDisabled": "Sign-up and sign-in are closed for now: the platform is in development.",
       "unknown": "Something went wrong. Please try again.",
-      "invalidCode": "The code did not match. Check the time on your phone and enter a new code."
+      "invalidCode": "The code did not match. Check the time on your phone and enter a new code.",
+      "googleFailed": "Could not sign in with Google. Please try again.",
+      "googleCancelled": "Google sign-in was cancelled.",
+      "googleEmailUnverified": "Google has not verified this email. Verify it in Google or sign in with your password.",
+      "googleConflict": "This email is already linked to another Google account. Sign in with your password or contact support.",
+      "googleBlocked": "The account is blocked or temporarily locked after failed sign-in attempts. Try again later or contact an administrator.",
+      "googleLinkRequired": "An account with this email already exists. Sign in with your password and connect Google under Security."
     }
   },
   "cabinet": {
@@ -257,7 +266,20 @@
     "disableHint": "Enter the current code from the app to turn it off.",
     "disabledDone": "Two-step sign-in is off.",
     "adminCannotDisable": "Administrators cannot turn off two-step sign-in.",
-    "back": "To workspace"
+    "back": "To workspace",
+    "googleTitle": "Sign in with Google",
+    "googleIntro": "Sign in with one click using your Google account. A personal Gmail works too.",
+    "googleOn": "Google is connected",
+    "googleOff": "Google is not connected",
+    "googleConnect": "Connect Google",
+    "googleDisconnect": "Disconnect Google",
+    "googleNeedsPassword": "To disconnect Google, set a password first: use “Forgot password?” on the sign-in page.",
+    "googleLinked": "Google is connected. We sent a notice to your email.",
+    "googleUnlinked": "Google is disconnected.",
+    "googleAlreadyLinked": "A Google account is already connected. Disconnect it first.",
+    "googleUsedElsewhere": "This Google account is already linked to another EduKit user.",
+    "googleLinkFailed": "Could not connect Google. Please try again.",
+    "googleLinkCancelled": "Connecting Google was cancelled."
   },
   "admin": {
     "title": "Administration",

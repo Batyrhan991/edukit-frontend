@@ -7,6 +7,7 @@ export type SystemInfo = components["schemas"]["SystemInfoResponse"];
 export type Me = components["schemas"]["MeResponse"];
 export type Session = components["schemas"]["SessionResponse"];
 export type MfaStatus = components["schemas"]["MfaStatusResponse"];
+export type SignInMethods = components["schemas"]["SignInMethodsResponse"];
 export type AdminOverview = components["schemas"]["AdminOverviewResponse"];
 export type AuditEntry = components["schemas"]["AuditEntryResponse"];
 
@@ -61,10 +62,22 @@ export async function getSessions(): Promise<ApiResult<Session[]>> {
   return call(() => apiClient(token).GET("/api/v1/sessions", { signal: AbortSignal.timeout(5000) }));
 }
 
+/** Включённые способы входа. При недоступном API кнопку Google не показываем. */
+export async function getAuthProviders(): Promise<{ google: boolean }> {
+  const result = await call(() => apiClient().GET("/api/v1/auth/providers", { signal: AbortSignal.timeout(5000) }));
+  return { google: result.ok && result.data.google };
+}
+
 export async function getMfaStatus(): Promise<ApiResult<MfaStatus>> {
   const token = await sessionToken();
   if (!token) return { ok: false, reason: "unauthorized", status: 401 };
   return call(() => apiClient(token).GET("/api/v1/account/mfa", { signal: AbortSignal.timeout(5000) }));
+}
+
+export async function getSignInMethods(): Promise<ApiResult<SignInMethods>> {
+  const token = await sessionToken();
+  if (!token) return { ok: false, reason: "unauthorized", status: 401 };
+  return call(() => apiClient(token).GET("/api/v1/account/sign-in-methods", { signal: AbortSignal.timeout(5000) }));
 }
 
 export async function getAdminOverview(): Promise<ApiResult<AdminOverview>> {

@@ -10,7 +10,8 @@ const MAX_BODY_BYTES = 1_000_000;
 const TIMEOUT_MS = 15_000;
 
 const forwardedRequestHeaders = ["accept", "accept-language", "content-type", "cookie", "user-agent", "x-correlation-id", "x-edukit-csrf"];
-const forwardedResponseHeaders = ["content-type", "x-correlation-id", "retry-after"];
+// location — перенаправления входа через Google (на accounts.google.com и обратно на страницы сайта).
+const forwardedResponseHeaders = ["content-type", "x-correlation-id", "retry-after", "location"];
 
 function problem(status: number, code: string, title: string) {
   return Response.json({ status, title, code }, { status, headers: { "content-type": "application/problem+json" } });

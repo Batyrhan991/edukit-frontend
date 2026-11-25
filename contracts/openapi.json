@@ -305,6 +305,122 @@
         }
       }
     },
+    "/api/v1/auth/providers": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Какие способы входа включены на сервере (кнопка Google показывается только при настроенном ключе).",
+        "operationId": "GetAuthProviders",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthProvidersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/google/start": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Перенаправляет на страницу входа Google. Открывается переходом браузера, не fetch.",
+        "operationId": "StartGoogleSignIn",
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "next",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "remember",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/account/sign-in-methods": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Способы входа текущего пользователя: пароль, Google.",
+        "operationId": "GetSignInMethods",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInMethodsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account/google/link": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Подключить Google к своему аккаунту: перенаправление на страницу Google. Открывается переходом браузера.",
+        "operationId": "StartGoogleLink",
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/account/google": {
+      "delete": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Отключить Google. Нельзя, если у аккаунта нет пароля (иначе не останется способа войти).",
+        "operationId": "UnlinkGoogle",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/auth/mfa/verify": {
       "post": {
         "tags": [
@@ -652,6 +768,17 @@
           }
         }
       },
+      "AuthProvidersResponse": {
+        "required": [
+          "google"
+        ],
+        "type": "object",
+        "properties": {
+          "google": {
+            "type": "boolean"
+          }
+        }
+      },
       "FeatureFlagUpdateRequest": {
         "required": [
           "enabled"
@@ -976,6 +1103,25 @@
             ]
           },
           "current": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SignInMethodsResponse": {
+        "required": [
+          "password",
+          "google",
+          "googleAvailable"
+        ],
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "boolean"
+          },
+          "google": {
+            "type": "boolean"
+          },
+          "googleAvailable": {
             "type": "boolean"
           }
         }

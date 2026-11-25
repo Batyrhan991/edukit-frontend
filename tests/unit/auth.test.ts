@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fieldErrors, problemKey } from "@/lib/api/browser";
+import { fieldErrors, googleErrorKey, problemKey } from "@/lib/api/browser";
 import { fmt } from "@/lib/format";
 import { safeNext } from "@/lib/navigation";
 
@@ -45,5 +45,21 @@ describe("safeNext", () => {
 describe("fmt", () => {
   it("substitutes known values and keeps unknown placeholders", () => {
     expect(fmt("Сәлеметсіз бе, {name}! {other}", { name: "Айгерім" })).toBe("Сәлеметсіз бе, Айгерім! {other}");
+  });
+});
+
+describe("googleErrorKey", () => {
+  it.each([
+    ["google_failed", "googleFailed"],
+    ["google_cancelled", "googleCancelled"],
+    ["google_email_unverified", "googleEmailUnverified"],
+    ["google_conflict", "googleConflict"],
+    ["google_blocked", "googleBlocked"],
+    ["google_link_required", "googleLinkRequired"],
+    ["toString", null],
+    ["<script>", null],
+    [null, null],
+  ])("%s → %s", (value, expected) => {
+    expect(googleErrorKey(value)).toBe(expected);
   });
 });
