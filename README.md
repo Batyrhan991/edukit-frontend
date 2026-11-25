@@ -14,7 +14,7 @@ cp .env.example .env.local      # адрес API, по умолчанию http:/
 npm run dev                     # http://localhost:3000 → перенаправит на /ru, /kk или /en
 ```
 
-Страницы: `/{locale}` — описание продукта и тарифы; `/{locale}/design` — токены, шрифт и состояния интерфейса; `/{locale}/status` — модули, о которых сообщает API (без запущенного backend показывает понятную ошибку с кнопкой «Повторить»).
+Страницы: `/{locale}/register`, `/login`, `/verify-email`, `/forgot-password`, `/reset-password` — учётная запись учителя; `/{locale}/teacher` — кабинет (нужен вход); `/{locale}/settings/sessions` — мои входы; `/{locale}` — описание продукта и тарифы; `/{locale}/design` — токены, шрифт и состояния интерфейса; `/{locale}/status` — модули, о которых сообщает API (без запущенного backend показывает понятную ошибку с кнопкой «Повторить»).
 
 ## Проверки
 
@@ -27,7 +27,9 @@ npx playwright install chromium
 npm run test:e2e       # Playwright: 1440 px и 360 px
 ```
 
-Совместная проверка с backend: запустите API (см. README backend) и выполните `E2E_API_URL=http://localhost:5080 npm run test:e2e` — тогда проверяется список модулей с реального сервера.
+Совместная проверка с backend: запустите базу, Mailpit и API (см. README backend; для тестов поднимите лимит: `Auth__RateLimit__PermitPerMinute=1000`) и выполните `E2E_API_URL=http://localhost:5080 E2E_MAILPIT_URL=http://localhost:8025 npm run test:e2e` — проверяется полный сценарий учителя: регистрация, письмо, подтверждение, вход, «Мои входы», выход, восстановление пароля.
+
+Браузер обращается к API только через прокси сайта `/api/v1/*` (`src/app/api/v1/[...path]/route.ts`), поэтому для локальной работы достаточно `EDUKIT_API_URL` в `.env.local`.
 
 ## Контракт API
 

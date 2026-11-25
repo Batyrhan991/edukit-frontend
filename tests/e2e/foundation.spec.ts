@@ -70,12 +70,16 @@ test("status page shows a recoverable error when the API is down", async ({ page
   await expect(alert.getByRole("link", { name: "Повторить" })).toBeVisible();
 });
 
-test("status page lists every module as disabled when the API is up", async ({ page }) => {
+test("status page lists all modules with their state when the API is up", async ({ page }) => {
   test.skip(!process.env.E2E_API_URL, "Set E2E_API_URL to a running backend");
   await page.goto("/en/status");
   const modules = page.getByTestId("system-modules");
-  await expect(modules.getByRole("listitem")).toHaveCount(15);
-  await expect(modules.getByText("Enabled", { exact: true })).toHaveCount(0);
+  const items = modules.getByRole("listitem");
+  await expect(items).toHaveCount(15);
+  // Каждый модуль подписан текстом, а не только цветом. В Development включён только вход (identity).
+  for (const item of await items.all()) {
+    await expect(item).toContainText(/Enabled|Disabled/);
+  }
 });
 
 test("unknown page shows branded 404 with a way home", async ({ page }) => {
