@@ -3,6 +3,9 @@ import type { components } from "./schema";
 export type Schemas = components["schemas"];
 export type Me = Schemas["MeResponse"];
 export type Session = Schemas["SessionResponse"];
+export type LoginResponse = Schemas["LoginResponse"];
+export type MfaStatus = Schemas["MfaStatusResponse"];
+export type SignInMethods = Schemas["SignInMethodsResponse"];
 
 /** Ответ API в браузере: либо данные, либо разобранная ошибка. */
 export type ApiProblem = { status: number; code?: string; errors?: Record<string, string[]> };
@@ -11,13 +14,34 @@ export type AuthErrorKey =
   | "invalidCredentials"
   | "emailNotConfirmed"
   | "invalidToken"
+  | "invalidCode"
   | "rateLimited"
   | "unavailable"
   | "moduleDisabled"
+  | "googleFailed"
+  | "googleCancelled"
+  | "googleEmailUnverified"
+  | "googleConflict"
+  | "googleBlocked"
+  | "googleLinkRequired"
   | "unknown";
 
+const googleErrors: Record<string, AuthErrorKey> = {
+  google_failed: "googleFailed",
+  google_cancelled: "googleCancelled",
+  google_email_unverified: "googleEmailUnverified",
+  google_conflict: "googleConflict",
+  google_blocked: "googleBlocked",
+  google_link_required: "googleLinkRequired",
+};
+
+/** Причина неудачного входа через Google из адреса `/login?error=…` (ставит сервер). Неизвестное значение игнорируется. */
+export function googleErrorKey(value: string | null): AuthErrorKey | null {
+  return value && Object.hasOwn(googleErrors, value) ? googleErrors[value] : null;
+}
+
 /** Запрос к API через same-origin прокси сайта. Изменяющие запросы несут CSRF-заголовок (ADR-0016). */
-export async function api(method: "GET" | "POST" | "DELETE", path: string, body?: unknown): Promise<Response> {
+export async function api(method: "GET" | "POST" | "PUT" | "DELETE", path: string, body?: unknown): Promise<Response> {
   const headers: Record<string, string> = { accept: "application/json" };
   if (method !== "GET") headers["X-EduKit-Csrf"] = "1";
   if (body !== undefined) headers["content-type"] = "application/json";
@@ -58,6 +82,8 @@ export function problemKey(problem: ApiProblem): AuthErrorKey {
       return "emailNotConfirmed";
     case "auth.invalid_token":
       return "invalidToken";
+    case "auth.invalid_code":
+      return "invalidCode";
     case "feature.disabled":
       return "moduleDisabled";
     case "api.unreachable":

@@ -139,7 +139,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MeResponse"
+                  "$ref": "#/components/schemas/LoginResponse"
                 }
               }
             }
@@ -304,10 +304,492 @@
           }
         }
       }
+    },
+    "/api/v1/auth/providers": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Какие способы входа включены на сервере (кнопка Google показывается только при настроенном ключе).",
+        "operationId": "GetAuthProviders",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthProvidersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/google/start": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Перенаправляет на страницу входа Google. Открывается переходом браузера, не fetch.",
+        "operationId": "StartGoogleSignIn",
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "next",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "remember",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/account/sign-in-methods": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Способы входа текущего пользователя: пароль, Google.",
+        "operationId": "GetSignInMethods",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignInMethodsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account/google/link": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Подключить Google к своему аккаунту: перенаправление на страницу Google. Открывается переходом браузера.",
+        "operationId": "StartGoogleLink",
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/account/google": {
+      "delete": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Отключить Google. Нельзя, если у аккаунта нет пароля (иначе не останется способа войти).",
+        "operationId": "UnlinkGoogle",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/mfa/verify": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Второй шаг входа: код из приложения или резервный код. Выдаёт новую cookie сессии.",
+        "operationId": "VerifyMfa",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaVerifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account/mfa": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "operationId": "GetMfaStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MfaStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account/mfa/setup": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Новый ключ для приложения-аутентификатора. Включается только после подтверждения кодом.",
+        "operationId": "BeginMfaSetup",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MfaSetupResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account/mfa/enable": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Подтверждение кодом и включение. Возвращает резервные коды один раз.",
+        "operationId": "EnableMfa",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryCodesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account/mfa/recovery-codes": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Новые резервные коды (старые перестают работать). Нужна сессия, прошедшая второй фактор.",
+        "operationId": "RegenerateRecoveryCodes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryCodesResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account/mfa/disable": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Отключение по текущему коду. Для администраторов запрещено.",
+        "operationId": "DisableMfa",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/overview": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "GetAdminOverview",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminOverviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/feature-flags/{key}": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Включить или выключить модуль. identity, admin, реальные платежи и Kundelik через API не меняются.",
+        "operationId": "SetFeatureFlag",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeatureFlagUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/audit": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "GetAuditLog",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditEntryResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AdminOverviewResponse": {
+        "required": [
+          "usersTotal",
+          "staff",
+          "platformAdmins",
+          "usersWithMfa",
+          "features"
+        ],
+        "type": "object",
+        "properties": {
+          "usersTotal": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "staff": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "platformAdmins": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "usersWithMfa": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "features": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "AuditEntryResponse": {
+        "required": [
+          "id",
+          "occurredAt",
+          "actorId",
+          "action",
+          "targetType",
+          "targetId",
+          "succeeded",
+          "metadata"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "actorId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "action": {
+            "type": "string"
+          },
+          "targetType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "targetId": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "succeeded": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "AuthProvidersResponse": {
+        "required": [
+          "google"
+        ],
+        "type": "object",
+        "properties": {
+          "google": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FeatureFlagUpdateRequest": {
+        "required": [
+          "enabled"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
       "HttpValidationProblemDetails": {
         "type": "object",
         "properties": {
@@ -374,6 +856,28 @@
           }
         }
       },
+      "LoginResponse": {
+        "required": [
+          "next",
+          "me"
+        ],
+        "type": "object",
+        "properties": {
+          "next": {
+            "type": "string"
+          },
+          "me": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MeResponse"
+              }
+            ]
+          }
+        }
+      },
       "MeResponse": {
         "required": [
           "id",
@@ -382,7 +886,8 @@
           "email",
           "emailConfirmed",
           "baseRole",
-          "locale"
+          "locale",
+          "mfaEnabled"
         ],
         "type": "object",
         "properties": {
@@ -410,6 +915,80 @@
           },
           "locale": {
             "type": "string"
+          },
+          "mfaEnabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "MfaCodeRequest": {
+        "required": [
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "MfaSetupResponse": {
+        "required": [
+          "sharedKey",
+          "authenticatorUri"
+        ],
+        "type": "object",
+        "properties": {
+          "sharedKey": {
+            "type": "string"
+          },
+          "authenticatorUri": {
+            "type": "string"
+          }
+        }
+      },
+      "MfaStatusResponse": {
+        "required": [
+          "enabled",
+          "required",
+          "recoveryCodesLeft"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "recoveryCodesLeft": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "MfaVerifyRequest": {
+        "required": [
+          "code",
+          "recoveryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "recoveryCode": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -448,6 +1027,20 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "RecoveryCodesResponse": {
+        "required": [
+          "recoveryCodes"
+        ],
+        "type": "object",
+        "properties": {
+          "recoveryCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
@@ -514,6 +1107,25 @@
           }
         }
       },
+      "SignInMethodsResponse": {
+        "required": [
+          "password",
+          "google",
+          "googleAvailable"
+        ],
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "boolean"
+          },
+          "google": {
+            "type": "boolean"
+          },
+          "googleAvailable": {
+            "type": "boolean"
+          }
+        }
+      },
       "SystemInfoResponse": {
         "required": [
           "name",
@@ -567,6 +1179,9 @@
     },
     {
       "name": "Account"
+    },
+    {
+      "name": "Admin"
     }
   ]
 }

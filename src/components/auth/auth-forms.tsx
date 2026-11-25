@@ -9,10 +9,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
-import { api, fieldErrors, problemKey, readProblem, type AuthErrorKey } from "@/lib/api/browser";
+import { api, fieldErrors, googleErrorKey, problemKey, readProblem, type AuthErrorKey, type LoginResponse } from "@/lib/api/browser";
 import { fmt } from "@/lib/format";
 import { safeNext } from "@/lib/navigation";
 import { Field, PasswordInput, TextInput } from "./form-parts";
+import { GoogleLogo } from "./google-logo";
 
 type T = Dictionary["auth"];
 type Props = { t: T; locale: Locale };
@@ -50,14 +51,42 @@ function ResendConfirmation({ t, email }: { t: T; email: string }) {
   );
 }
 
-export function LoginForm({ t, locale }: Props) {
+/**
+ * Вход через Google — обычный переход по ссылке (не fetch): сервер ставит одноразовую cookie и перенаправляет
+ * на страницу Google, а после неё — обратно на сайт (ADR-0032).
+ */
+function GoogleButton({ label, locale, next, remember }: { label: string; locale: Locale; next: string; remember: boolean }) {
+  const query = new URLSearchParams({ locale, next, remember: String(remember) });
+  return (
+    <Button asChild variant="outline" className="h-10 w-full">
+      <a href={`/api/v1/auth/google/start?${query.toString()}`}>
+        <GoogleLogo />
+        {label}
+      </a>
+    </Button>
+  );
+}
+
+function OrDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 text-sm text-muted-foreground" aria-hidden>
+      <span className="h-px flex-1 bg-border" />
+      {label}
+      <span className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
+export function LoginForm({ t, locale, mfa, google = false }: Props & { mfa: Dictionary["mfa"]; google?: boolean }) {
   const router = useRouter();
   const params = useSearchParams();
+  // После входа через Google сервер возвращает на /login?step=mfa, если нужен код из приложения.
+  const [step, setStep] = useState<"password" | "mfa">(params.get("step") === "mfa" ? "mfa" : "password");
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState<AuthErrorKey | null>(null);
+  const [error, setError] = useState<AuthErrorKey | null>(() => googleErrorKey(params.get("error")));
   const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent) {
@@ -72,7 +101,13 @@ export function LoginForm({ t, locale }: Props) {
     setBusy(true);
     const response = await api("POST", "/auth/login", { login: login.trim(), password, rememberMe: remember });
     if (response.ok) {
-      router.replace(safeNext(params.get("next"), locale));
+      const result = (await response.json()) as LoginResponse;
+      if (result.next === "mfa") {
+        setStep("mfa");
+        setBusy(false);
+        return;
+      }
+      router.replace(result.next === "mfa_setup" ? `/${locale}/settings/security` : safeNext(params.get("next"), locale));
       router.refresh();
       return;
     }
@@ -80,6 +115,19 @@ export function LoginForm({ t, locale }: Props) {
     setErrors(fieldErrors(problem));
     setError(problemKey(problem));
     setBusy(false);
+  }
+
+  if (step === "mfa") {
+    return (
+      <MfaStep
+        t={t}
+        mfa={mfa}
+        onDone={() => {
+          router.replace(safeNext(params.get("next"), locale));
+          router.refresh();
+        }}
+      />
+    );
   }
 
   return (
@@ -112,6 +160,12 @@ export function LoginForm({ t, locale }: Props) {
       <Button type="submit" className="h-10 w-full" disabled={busy}>
         {busy ? t.submitting : t.loginSubmit}
       </Button>
+      {google ? (
+        <>
+          <OrDivider label={t.or} />
+          <GoogleButton label={t.google} locale={locale} next={safeNext(params.get("next"), locale)} remember={remember} />
+        </>
+      ) : null}
       <div className="flex flex-wrap justify-between gap-2 text-sm">
         <Link className="text-primary underline-offset-4 hover:underline" href={`/${locale}/forgot-password`}>
           {t.forgotLink}
@@ -127,7 +181,71 @@ export function LoginForm({ t, locale }: Props) {
   );
 }
 
-export function RegisterForm({ t, locale }: Props) {
+/** Второй шаг входа: код из приложения или резервный код (ADR-0029). */
+function MfaStep({ t, mfa, onDone }: { t: T; mfa: Dictionary["mfa"]; onDone: () => void }) {
+  const [useRecovery, setUseRecovery] = useState(false);
+  const [value, setValue] = useState("");
+  const [error, setError] = useState<AuthErrorKey | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!value.trim()) return;
+    setBusy(true);
+    setError(null);
+    const response = await api("POST", "/auth/mfa/verify", useRecovery ? { recoveryCode: value.trim() } : { code: value.trim() });
+    if (response.ok) {
+      onDone();
+      return;
+    }
+    const problem = await readProblem(response);
+    // Незавершённый вход закрывается после 5 ошибок: тогда сервер отвечает 401/403 — начинаем вход заново.
+    setError(problem.status === 401 || problem.status === 403 ? "invalidCredentials" : problemKey(problem));
+    setBusy(false);
+  }
+
+  return (
+    <form onSubmit={submit} noValidate className="space-y-4">
+      <div>
+        <h2 className="text-lg font-semibold">{mfa.title}</h2>
+        <p className="text-muted-foreground">{useRecovery ? mfa.recoveryHint : mfa.intro}</p>
+      </div>
+      <Field label={useRecovery ? mfa.recoveryCode : mfa.code}>
+        {(a) => (
+          <TextInput
+            {...a}
+            key={useRecovery ? "recovery" : "code"}
+            name={useRecovery ? "recoveryCode" : "code"}
+            autoComplete="one-time-code"
+            inputMode={useRecovery ? "text" : "numeric"}
+            maxLength={useRecovery ? 32 : 6}
+            autoFocus
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className="font-mono tracking-widest"
+          />
+        )}
+      </Field>
+      <FormError t={t} error={error} />
+      <Button type="submit" className="h-10 w-full" disabled={busy}>
+        {busy ? t.submitting : mfa.submit}
+      </Button>
+      <button
+        type="button"
+        className="text-sm text-primary underline-offset-4 hover:underline"
+        onClick={() => {
+          setUseRecovery(!useRecovery);
+          setValue("");
+          setError(null);
+        }}
+      >
+        {useRecovery ? mfa.useApp : mfa.useRecovery}
+      </button>
+    </form>
+  );
+}
+
+export function RegisterForm({ t, locale, google = false }: Props & { google?: boolean }) {
   const [form, setForm] = useState({ firstName: "", lastName: "", email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState<AuthErrorKey | null>(null);
@@ -199,6 +317,12 @@ export function RegisterForm({ t, locale }: Props) {
       <Button type="submit" className="h-10 w-full" disabled={busy}>
         {busy ? t.submitting : t.registerSubmit}
       </Button>
+      {google ? (
+        <>
+          <OrDivider label={t.or} />
+          <GoogleButton label={t.googleRegister} locale={locale} next={`/${locale}/teacher`} remember={false} />
+        </>
+      ) : null}
       <p className="text-sm">
         {t.haveAccount}{" "}
         <Link className="text-primary underline-offset-4 hover:underline" href={`/${locale}/login`}>
