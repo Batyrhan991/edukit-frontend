@@ -112,6 +112,22 @@ test.describe("lesson plan generator (live, sample AI)", () => {
     await expect(page.getByLabel("Название документа")).toHaveValue("КСП 7 класс — Телеграмма");
     await expect(page.getByRole("textbox", { name: "КСП 7 класс — Телеграмма" })).toContainText("Правка учителя. Образы-персонажи");
 
+    // Скачивание сохранённой версии в Word и PDF (через прокси, с именем файла из названия).
+    for (const [button, extension] of [["Скачать Word", "docx"], ["Скачать PDF", "pdf"]] as const) {
+      const downloading = page.waitForEvent("download");
+      await page.getByRole("link", { name: button }).click();
+      const download = await downloading;
+      expect(download.suggestedFilename()).toBe(`КСП 7 класс Телеграмма.${extension}`);
+      expect(await download.failure()).toBeNull();
+    }
+
+    // С несохранёнными правками скачать нельзя — сначала сохранить.
+    await editAtStart(page, page.getByRole("textbox", { name: "КСП 7 класс — Телеграмма" }).getByRole("heading").first(), "Черновик. ");
+    await expect(page.getByRole("button", { name: "Скачать Word" })).toBeDisabled();
+    await expect(page.getByText("Сохраните документ, чтобы скачать последние правки.")).toBeVisible();
+    await page.getByRole("button", { name: "Сохранить" }).click();
+    await expect(page.getByTestId("save-state")).toHaveText("Сохранено");
+
     // Вторая вкладка с устаревшей версией: сохранение не перезаписывает правку молча.
     const second = await page.context().newPage();
     await second.goto(documentUrl);

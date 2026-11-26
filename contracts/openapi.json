@@ -790,6 +790,45 @@
         }
       }
     },
+    "/api/v1/documents/{id}/export": {
+      "get": {
+        "tags": [
+          "Documents"
+        ],
+        "summary": "Скачать сохранённую версию документа: format=docx или pdf. Только владелец.",
+        "operationId": "ExportDocument",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/mfa/verify": {
       "post": {
         "tags": [

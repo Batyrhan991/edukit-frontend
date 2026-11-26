@@ -11,7 +11,7 @@ const TIMEOUT_MS = 15_000;
 
 const forwardedRequestHeaders = ["accept", "accept-language", "content-type", "cookie", "idempotency-key", "user-agent", "x-correlation-id", "x-edukit-csrf"];
 // location — перенаправления входа через Google (на accounts.google.com и обратно на страницы сайта).
-const forwardedResponseHeaders = ["content-type", "x-correlation-id", "retry-after", "location"];
+const forwardedResponseHeaders = ["content-type", "content-disposition", "x-correlation-id", "retry-after", "location"];
 
 function problem(status: number, code: string, title: string) {
   return Response.json({ status, title, code }, { status, headers: { "content-type": "application/problem+json" } });
