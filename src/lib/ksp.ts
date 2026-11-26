@@ -21,6 +21,8 @@ export function kspErrorKey(code: string | null | undefined, status?: number): K
       return "interrupted";
     case "ai.busy":
       return "busy";
+    case "ai.budget_exceeded":
+      return "budget";
     case "feature.disabled":
       return "disabled";
   }
