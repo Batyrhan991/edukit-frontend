@@ -47,6 +47,7 @@ async function signedInTeacher(page: Page) {
 test("documents page asks to sign in", async ({ page }) => {
   await page.goto("/ru/teacher/documents");
   await expect(page).toHaveURL(/\/ru\/login/);
+  await expect(page.getByRole("banner").getByRole("link", { name: "Войти" })).toBeVisible();
 });
 
 test("lesson plan page asks to sign in", async ({ page }) => {
@@ -160,8 +161,10 @@ test.describe("lesson plan generator (live, sample AI)", () => {
       expect(created.status()).toBe(201);
     }
 
-    // В кабинете — последние документы, сначала самый новый.
+    // В кабинете — последние документы, сначала самый новый; в шапке вместо «Войти» — «Мой кабинет».
     await page.goto("/ru/teacher");
+    await expect(page.getByRole("banner").getByRole("link", { name: "Мой кабинет" })).toBeVisible();
+    await expect(page.getByRole("banner").getByRole("link", { name: "Войти" })).toHaveCount(0);
     await expect(page.getByTestId("recent-documents").getByRole("listitem").first()).toContainText("Телеграмма — вопросы");
 
     await page.getByRole("link", { name: "Все документы" }).click();

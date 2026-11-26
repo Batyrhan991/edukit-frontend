@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { Suspense } from "react";
+import { hasSessionCookie } from "@/lib/api/server";
 import { LocaleLinks, LocaleSwitcher } from "./locale-switcher";
 import { ThemeSwitcher } from "./theme-switcher";
 
@@ -33,12 +34,10 @@ export function SiteHeader({ locale, t }: { locale: Locale; t: Dictionary }) {
           </ul>
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          <Link
-            href={`/${locale}/login`}
-            className="flex h-9 items-center bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
-            {t.nav.signIn}
-          </Link>
+          {/* Пока читается cookie — пустое место той же высоты, чтобы «Войти» не мелькало у вошедшего. */}
+          <Suspense fallback={<span className="h-9 w-20" aria-hidden />}>
+            <AccountLink locale={locale} t={t} />
+          </Suspense>
           <Suspense fallback={<LocaleLinks current={locale} label={t.nav.language} pathname={`/${locale}`} />}>
             <LocaleSwitcher current={locale} label={t.nav.language} />
           </Suspense>
@@ -53,5 +52,21 @@ export function SiteHeader({ locale, t }: { locale: Locale; t: Dictionary }) {
         </div>
       </div>
     </header>
+  );
+}
+
+const accountLinkClass = "flex h-9 items-center bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90";
+
+/** «Войти» для гостя, «Мой кабинет» после входа. Устаревшая сессия: кабинет сам отправит на вход. */
+async function AccountLink({ locale, t }: { locale: Locale; t: Dictionary }) {
+  const signedIn = await hasSessionCookie();
+  return signedIn ? (
+    <Link href={`/${locale}/teacher`} className={accountLinkClass}>
+      {t.nav.cabinet}
+    </Link>
+  ) : (
+    <Link href={`/${locale}/login`} className={accountLinkClass}>
+      {t.nav.signIn}
+    </Link>
   );
 }

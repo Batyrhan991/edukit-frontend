@@ -46,6 +46,11 @@ async function call<T>(request: () => Promise<{ data?: T; response: Response }>)
 }
 
 /** Cookie сессии текущего запроса (читается только на сервере; в браузере она HttpOnly). */
+/** Есть ли cookie сессии — только для вида шапки; права и действительность сессии проверяет API. */
+export async function hasSessionCookie(): Promise<boolean> {
+  return (await sessionToken()) !== undefined;
+}
+
 async function sessionToken(): Promise<string | undefined> {
   return (await cookies()).get(SESSION_COOKIE)?.value;
 }
