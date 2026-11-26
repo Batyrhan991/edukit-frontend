@@ -8,6 +8,10 @@ import type { NextRequest } from "next/server";
 const API_URL = process.env.EDUKIT_API_URL ?? "http://localhost:5080";
 const MAX_BODY_BYTES = 1_000_000;
 const TIMEOUT_MS = 15_000;
+// Файлы AI-чата (ADR-0046): до 50 МБ и дольше — проверка антивирусом и извлечение текста. Только этот адрес.
+const UPLOAD_PATH = /^chat\/conversations\/[0-9a-f-]{36}\/attachments$/i;
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024 + 64 * 1024;
+const UPLOAD_TIMEOUT_MS = 120_000;
 
 const forwardedRequestHeaders = ["accept", "accept-language", "content-type", "cookie", "idempotency-key", "user-agent", "x-correlation-id", "x-edukit-csrf"];
 // location — перенаправления входа через Google (на accounts.google.com и обратно на страницы сайта).
@@ -37,10 +41,17 @@ async function forward(request: NextRequest, ctx: RouteContext<"/api/v1/[...path
     if (clientIp) headers.set("x-forwarded-for", clientIp);
   }
 
+  const upload = request.method === "POST" && UPLOAD_PATH.test(path.join("/"));
+  const maxBody = upload ? MAX_UPLOAD_BYTES : MAX_BODY_BYTES;
+  const declared = Number(request.headers.get("content-length") ?? "0");
+  if (declared > maxBody) {
+    return problem(413, "proxy.body_too_large", "Request body is too large.");
+  }
+
   let body: ArrayBuffer | undefined;
   if (request.method !== "GET" && request.method !== "HEAD") {
     body = await request.arrayBuffer();
-    if (body.byteLength > MAX_BODY_BYTES) {
+    if (body.byteLength > maxBody) {
       return problem(413, "proxy.body_too_large", "Request body is too large.");
     }
   }
@@ -53,7 +64,7 @@ async function forward(request: NextRequest, ctx: RouteContext<"/api/v1/[...path
       body,
       redirect: "manual",
       cache: "no-store",
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: AbortSignal.timeout(upload ? UPLOAD_TIMEOUT_MS : TIMEOUT_MS),
     });
   } catch {
     return problem(502, "api.unreachable", "EduKit API is unreachable.");

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chatErrorKey, inline, limitKey, parseAnswer, validateText } from "@/lib/chat";
+import { chatErrorKey, fileSize, inline, limitKey, parseAnswer, validateFile, validateText } from "@/lib/chat";
 import en from "../../messages/en.json";
 import kk from "../../messages/kk.json";
 import ru from "../../messages/ru.json";
@@ -40,7 +40,8 @@ describe("chat errors", () => {
 
   it("has a message for every error key in all languages", () => {
     const keys = ["insufficient", "tooMany", "conflict", "provider", "invalid", "timeout", "interrupted", "busy", "budget", "pending", "messageLimit",
-      "conversationLimit", "memoryDuplicate", "memoryLimit", "notFound", "forbidden", "disabled", "offline", "unknown", "required", "too_long", "personal_data"];
+      "conversationLimit", "memoryDuplicate", "memoryLimit", "notFound", "forbidden", "disabled", "offline", "unknown", "required", "too_long", "personal_data",
+      "fileTooLarge", "fileUnsupported", "fileNoText", "fileUnreadable", "fileInfected", "scannerDown", "fileLimit"];
     for (const dict of [ru, kk, en]) {
       for (const key of keys) expect((dict.chat.errors as Record<string, string>)[key], key).toBeTruthy();
     }
@@ -50,5 +51,34 @@ describe("chat errors", () => {
     expect(validateText("  ", 10)).toBe("required");
     expect(validateText("a".repeat(11), 10)).toBe("too_long");
     expect(validateText(" вопрос ", 10)).toBeNull();
+  });
+});
+
+describe("chat files", () => {
+  it("checks extension and size before upload", () => {
+    expect(validateFile("План.PDF", 1000)).toBeNull();
+    expect(validateFile("plan.docx", 1000)).toBeNull();
+    expect(validateFile("notes.txt", 10)).toBeNull();
+    expect(validateFile("photo.png", 1000)).toBe("fileUnsupported");
+    expect(validateFile("plan.pdf.exe", 1000)).toBe("fileUnsupported");
+    expect(validateFile("old.doc", 1000)).toBe("fileUnsupported");
+    expect(validateFile("big.pdf", 50 * 1024 * 1024 + 1)).toBe("fileTooLarge");
+    expect(validateFile("empty.txt", 0)).toBe("fileNoText");
+  });
+
+  it("maps file errors from the server and the proxy", () => {
+    expect(chatErrorKey("files.infected")).toBe("fileInfected");
+    expect(chatErrorKey("files.scanner_unavailable", 503)).toBe("scannerDown");
+    expect(chatErrorKey("files.unsupported", 415)).toBe("fileUnsupported");
+    expect(chatErrorKey("proxy.body_too_large", 413)).toBe("fileTooLarge");
+    expect(chatErrorKey(undefined, 413)).toBe("fileTooLarge");
+    expect(chatErrorKey("chat.attachment_limit")).toBe("fileLimit");
+  });
+
+  it("formats file sizes", () => {
+    const units = { kb: "КБ", mb: "МБ" };
+    expect(fileSize(300, "ru-RU", units)).toBe("1 КБ");
+    expect(fileSize(20 * 1024, "ru-RU", units)).toBe("20 КБ");
+    expect(fileSize(3.5 * 1024 * 1024, "ru-RU", units)).toBe("3,5 МБ");
   });
 });

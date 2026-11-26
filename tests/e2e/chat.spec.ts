@@ -66,7 +66,7 @@ test.describe("AI assistant (live, sample AI)", () => {
     await input.fill("Запомни: веду русскую литературу в 7 классе");
     await input.press("Enter");
     const answer = panel.getByTestId("chat-answer");
-    await expect(answer).toContainText("Учебный пример без AI");
+    await expect(answer).toContainText("Учебный пример без AI", { timeout: 20_000 });
     await expect(answer).toContainText("веду русскую литературу в 7 классе");
     await expect(input).toHaveValue("");
 
@@ -90,5 +90,28 @@ test.describe("AI assistant (live, sample AI)", () => {
     await panel.press("Escape");
     await expect(panel).toHaveCount(0);
     await expect(page.getByTestId("chat-open")).toBeFocused();
+  });
+
+  test("teacher attaches a text file, the answer uses it, and wrong files are refused", async ({ page }) => {
+    await signedInTeacher(page);
+    await page.getByTestId("chat-open").click();
+    const panel = page.getByTestId("chat-panel");
+    await panel.getByRole("button", { name: "Новая беседа" }).click();
+
+    // Неподходящий тип — отказ ещё до отправки.
+    await panel.getByTestId("chat-file-input").setInputFiles({ name: "photo.png", mimeType: "image/png", buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47]) });
+    await expect(panel.getByText("Подходят только PDF, Word (.docx) и текст (.txt)")).toBeVisible();
+
+    await panel.getByTestId("chat-file-input").setInputFiles({ name: "заметки.txt", mimeType: "text/plain", buffer: Buffer.from("Заметки к уроку: начать с вопроса о письмах.") });
+    const files = panel.getByTestId("chat-files");
+    await expect(files).toContainText("заметки.txt");
+    await expect(files).toContainText("1 КБ");
+
+    await panel.getByTestId("chat-input").fill("Что в моих заметках?");
+    await panel.getByTestId("chat-input").press("Enter");
+    await expect(panel.getByTestId("chat-answer")).toContainText("Прочитаны файлы: заметки.txt", { timeout: 20_000 });
+
+    await panel.getByRole("button", { name: "Убрать файл «заметки.txt»" }).click();
+    await expect(panel.getByTestId("chat-files")).toHaveCount(0);
   });
 });

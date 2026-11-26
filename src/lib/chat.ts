@@ -4,9 +4,13 @@ export type ChatConversation = Schemas["ChatConversationResponse"];
 export type ChatSummary = Schemas["ChatConversationSummary"];
 export type ChatMessage = Schemas["ChatMessageResponse"];
 export type MemoryItem = Schemas["AiMemoryResponse"];
+export type Attachment = Schemas["ChatAttachmentResponse"];
 
 export const MAX_QUESTION = 4000;
 export const MAX_MEMORY = 300;
+export const MAX_FILE_BYTES = 50 * 1024 * 1024;
+export const MAX_FILES = 5;
+export const FILE_ACCEPT = ".pdf,.docx,.txt";
 
 /** Кусок строки ответа: обычный текст или **жирный**. */
 export type Inline = { text: string; bold: boolean };
@@ -77,6 +81,13 @@ export type ChatErrorKey =
   | "memoryDuplicate"
   | "memoryLimit"
   | "notFound"
+  | "fileTooLarge"
+  | "fileUnsupported"
+  | "fileNoText"
+  | "fileUnreadable"
+  | "fileInfected"
+  | "scannerDown"
+  | "fileLimit"
   | "forbidden"
   | "disabled"
   | "offline"
@@ -111,11 +122,27 @@ export function chatErrorKey(code: string | null | undefined, status?: number): 
     case "chat.not_found":
     case "chat.memory_not_found":
       return "notFound";
+    case "files.too_large":
+    case "proxy.body_too_large":
+      return "fileTooLarge";
+    case "files.unsupported":
+      return "fileUnsupported";
+    case "files.no_text":
+      return "fileNoText";
+    case "files.unreadable":
+      return "fileUnreadable";
+    case "files.infected":
+      return "fileInfected";
+    case "files.scanner_unavailable":
+      return "scannerDown";
+    case "chat.attachment_limit":
+      return "fileLimit";
     case "feature.disabled":
       return "disabled";
     case "api.unreachable":
       return "offline";
   }
+  if (status === 413) return "fileTooLarge";
   if (status === 403) return "forbidden";
   if (status === 404) return "disabled";
   if (status === 429) return "tooMany";
@@ -139,4 +166,19 @@ export function validateText(text: string, max: number): "required" | "too_long"
   if (value === "") return "required";
   if (value.length > max) return "too_long";
   return null;
+}
+
+/** Проверка файла до отправки: расширение и размер. Тип по содержимому и антивирус проверяет сервер. */
+export function validateFile(name: string, size: number): ChatErrorKey | null {
+  const extension = name.toLowerCase().match(/\.[a-z0-9]+$/)?.[0] ?? "";
+  if (![".pdf", ".docx", ".txt"].includes(extension)) return "fileUnsupported";
+  if (size > MAX_FILE_BYTES) return "fileTooLarge";
+  if (size === 0) return "fileNoText";
+  return null;
+}
+
+/** Размер файла для подписи: «12 КБ», «3,4 МБ». */
+export function fileSize(bytes: number, locale: string, units: { kb: string; mb: string }): string {
+  const format = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
+  return bytes < 1024 * 1024 ? `${format.format(Math.max(1, Math.round(bytes / 1024)))} ${units.kb}` : `${format.format(bytes / 1024 / 1024)} ${units.mb}`;
 }
