@@ -49,7 +49,7 @@ test("teacher cabinet without a session redirects to sign-in", async ({ page }) 
 /** Ссылка из последнего письма адресату в Mailpit. */
 async function linkFromMail(email: string, path: string): Promise<string> {
   for (let attempt = 0; attempt < 20; attempt++) {
-    const list = await (await fetch(`${mailpit}/api/v1/messages?limit=50`)).json();
+    const list = await (await fetch(`${mailpit}/api/v1/search?query=${encodeURIComponent(`to:"${email}"`)}&limit=20`)).json();
     const message = list.messages.find((m: { To: { Address: string }[] }) => m.To[0].Address === email);
     if (message) {
       const full = await (await fetch(`${mailpit}/api/v1/message/${message.ID}`)).json();

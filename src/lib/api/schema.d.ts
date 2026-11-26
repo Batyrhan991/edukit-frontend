@@ -304,6 +304,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/generators/sor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Запустить генерацию СОР/СОЧ (mode: sor или soch). Заголовок Idempotency-Key обязателен. */
+        post: operations["GenerateSor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/generations": {
         parameters: {
             query?: never;
@@ -695,6 +712,7 @@ export interface components {
             /** Format: date-time */
             finishedAt: null | string;
             ksp: null | components["schemas"]["KspDocument"];
+            sor?: null | components["schemas"]["SorDocument"];
         };
         HttpValidationProblemDetails: {
             type?: null | string;
@@ -830,6 +848,57 @@ export interface components {
             password: boolean;
             google: boolean;
             googleAvailable: boolean;
+        };
+        SorDescriptor: {
+            text: string;
+            /** Format: int32 */
+            points: number | string;
+        };
+        SorDocument: {
+            mode: string;
+            title: string;
+            subject: string;
+            grade: string;
+            section: string;
+            /** Format: int32 */
+            quarter: null | number | string;
+            /** Format: int32 */
+            durationMinutes: number | string;
+            learningObjectives: components["schemas"]["KspLearningObjective"][];
+            assessmentCriteria: string[];
+            tasks: components["schemas"]["SorTask"][];
+            /** Format: int32 */
+            totalPoints: number | string;
+            sources: components["schemas"]["KspSource"][];
+            warnings: string[];
+        };
+        SorRequest: {
+            mode: string;
+            subject: string;
+            grade: string;
+            section: string;
+            /** Format: int32 */
+            quarter: null | number | string;
+            /** Format: int32 */
+            durationMinutes: number | string;
+            /** Format: int32 */
+            totalPoints: number | string;
+            /** Format: int32 */
+            taskCount: null | number | string;
+            notes: null | string;
+            language: string;
+        };
+        SorTask: {
+            /** Format: int32 */
+            number: number | string;
+            text: string;
+            thinkingLevel: string;
+            /** Format: int32 */
+            criterion: number | string;
+            /** Format: int32 */
+            points: number | string;
+            answer: string;
+            descriptors: components["schemas"]["SorDescriptor"][];
         };
         SystemInfoResponse: {
             name: string;
@@ -1268,6 +1337,50 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["KspRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+        };
+    };
+    GenerateSor: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SorRequest"];
             };
         };
         responses: {

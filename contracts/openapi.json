@@ -502,6 +502,66 @@
         }
       }
     },
+    "/api/v1/generators/sor": {
+      "post": {
+        "tags": [
+          "Generators"
+        ],
+        "summary": "Запустить генерацию СОР/СОЧ (mode: sor или soch). Заголовок Idempotency-Key обязателен.",
+        "operationId": "GenerateSor",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SorRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/generations": {
       "get": {
         "tags": [
@@ -1615,6 +1675,16 @@
                 "$ref": "#/components/schemas/KspDocument"
               }
             ]
+          },
+          "sor": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/SorDocument"
+              }
+            ]
           }
         }
       },
@@ -2199,6 +2269,241 @@
           },
           "googleAvailable": {
             "type": "boolean"
+          }
+        }
+      },
+      "SorDescriptor": {
+        "required": [
+          "text",
+          "points"
+        ],
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "points": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "SorDocument": {
+        "required": [
+          "mode",
+          "title",
+          "subject",
+          "grade",
+          "section",
+          "quarter",
+          "durationMinutes",
+          "learningObjectives",
+          "assessmentCriteria",
+          "tasks",
+          "totalPoints",
+          "sources",
+          "warnings"
+        ],
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          },
+          "quarter": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "durationMinutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "learningObjectives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KspLearningObjective"
+            }
+          },
+          "assessmentCriteria": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SorTask"
+            }
+          },
+          "totalPoints": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KspSource"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "SorRequest": {
+        "required": [
+          "mode",
+          "subject",
+          "grade",
+          "section",
+          "quarter",
+          "durationMinutes",
+          "totalPoints",
+          "taskCount",
+          "notes",
+          "language"
+        ],
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "section": {
+            "type": "string"
+          },
+          "quarter": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "durationMinutes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "totalPoints": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "taskCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "language": {
+            "type": "string"
+          }
+        }
+      },
+      "SorTask": {
+        "required": [
+          "number",
+          "text",
+          "thinkingLevel",
+          "criterion",
+          "points",
+          "answer",
+          "descriptors"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "text": {
+            "type": "string"
+          },
+          "thinkingLevel": {
+            "type": "string"
+          },
+          "criterion": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "points": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "descriptors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SorDescriptor"
+            }
           }
         }
       },

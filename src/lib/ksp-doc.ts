@@ -31,25 +31,25 @@ export type KspDocLabels = {
 };
 
 /** Текстовый узел: пустой текст редактор не допускает — возвращаем пустой список. Пробелы внутри сохраняются. */
-function text(value: string | null | undefined, bold = false): DocNode[] {
+export function text(value: string | null | undefined, bold = false): DocNode[] {
   const raw = value ?? "";
   if (!raw.trim()) return [];
   return [bold ? { type: "text", text: raw, marks: [{ type: "bold" }] } : { type: "text", text: raw }];
 }
 
-const paragraph = (...parts: DocNode[][]): DocNode => {
+export const paragraph = (...parts: DocNode[][]): DocNode => {
   const content = parts.flat();
   return content.length > 0 ? { type: "paragraph", content } : { type: "paragraph" };
 };
 
-const heading = (level: number, value: string): DocNode => ({ type: "heading", attrs: { level }, content: text(value) });
+export const heading = (level: number, value: string): DocNode => ({ type: "heading", attrs: { level }, content: text(value) });
 
-const bullets = (items: readonly string[]): DocNode => ({
+export const bullets = (items: readonly string[]): DocNode => ({
   type: "bulletList",
   content: items.filter((i) => i.trim()).map((i) => ({ type: "listItem", content: [paragraph(text(i))] })),
 });
 
-const cell = (type: "tableCell" | "tableHeader", value: string): DocNode => ({
+export const cell = (type: "tableCell" | "tableHeader", value: string): DocNode => ({
   type,
   attrs: { colspan: 1, rowspan: 1, colwidth: null },
   content: [paragraph(text(value, type === "tableHeader"))],
