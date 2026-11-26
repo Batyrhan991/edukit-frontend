@@ -928,6 +928,82 @@
         }
       }
     },
+    "/api/v1/chat/conversations/{id}/attachments": {
+      "post": {
+        "tags": [
+          "Chat"
+        ],
+        "summary": "Прикрепить PDF, DOCX или TXT (поле file, до 50 МБ). Сохраняется только текст; файл проверяется антивирусом.",
+        "operationId": "AttachChatFile",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/IFormFile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatAttachmentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/chat/attachments/{id}": {
+      "delete": {
+        "tags": [
+          "Chat"
+        ],
+        "operationId": "DeleteChatAttachment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
     "/api/v1/chat/memory": {
       "get": {
         "tags": [
@@ -1749,6 +1825,53 @@
           }
         }
       },
+      "ChatAttachmentResponse": {
+        "required": [
+          "id",
+          "fileName",
+          "kind",
+          "sizeBytes",
+          "chars",
+          "truncated",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "chars": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ChatConversationResponse": {
         "required": [
           "id",
@@ -1759,7 +1882,8 @@
           "createdAt",
           "updatedAt",
           "expiresAt",
-          "messages"
+          "messages",
+          "attachments"
         ],
         "type": "object",
         "properties": {
@@ -1801,6 +1925,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ChatMessageResponse"
+            }
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChatAttachmentResponse"
             }
           }
         }
@@ -2362,6 +2492,10 @@
             }
           }
         }
+      },
+      "IFormFile": {
+        "type": "string",
+        "format": "binary"
       },
       "JsonElement": { },
       "KspBlock": {

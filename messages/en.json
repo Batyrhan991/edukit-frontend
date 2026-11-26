@@ -582,7 +582,22 @@
       "unknown": "Something went wrong. Please try again.",
       "required": "Enter some text.",
       "too_long": "The text is too long.",
-      "personal_data": "The text contains personal data (ID number, phone or email). Remove it."
-    }
+      "personal_data": "The text contains personal data (ID number, phone or email). Remove it.",
+      "fileTooLarge": "The file is larger than 50 MB.",
+      "fileUnsupported": "Only PDF, Word (.docx) and text (.txt) files are accepted. Check that the extension matches the content.",
+      "fileNoText": "The file has no text — it may be a scan or an image.",
+      "fileUnreadable": "The file could not be read: it is damaged, password-protected or too complex.",
+      "fileInfected": "The file failed the antivirus check and was not accepted.",
+      "scannerDown": "The virus check is unavailable, so files are not accepted right now. Try again later.",
+      "fileLimit": "This conversation already has 5 files. Remove one."
+    },
+    "attach": "Attach a file",
+    "attachHint": "PDF, Word (.docx) or text (.txt), up to 50 MB, up to 5 files. Only the file's text is kept.",
+    "files": "Conversation files",
+    "uploading": "Checking “{name}”…",
+    "fileDelete": "Remove “{name}”",
+    "fileTruncated": "read partially",
+    "kb": "KB",
+    "mb": "MB"
   }
 }

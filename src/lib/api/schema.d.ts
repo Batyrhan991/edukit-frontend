@@ -438,6 +438,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/chat/conversations/{id}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Прикрепить PDF, DOCX или TXT (поле file, до 50 МБ). Сохраняется только текст; файл проверяется антивирусом. */
+        post: operations["AttachChatFile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/attachments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["DeleteChatAttachment"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/chat/memory": {
         parameters: {
             query?: never;
@@ -740,6 +773,19 @@ export interface components {
             suggestedMemory: null | string;
             warnings: string[];
         };
+        ChatAttachmentResponse: {
+            /** Format: uuid */
+            id: string;
+            fileName: string;
+            kind: string;
+            /** Format: int64 */
+            sizeBytes: number | string;
+            /** Format: int32 */
+            chars: number | string;
+            truncated: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
         ChatConversationResponse: {
             /** Format: uuid */
             id: string;
@@ -754,6 +800,7 @@ export interface components {
             /** Format: date-time */
             expiresAt: string;
             messages: components["schemas"]["ChatMessageResponse"][];
+            attachments: components["schemas"]["ChatAttachmentResponse"][];
         };
         ChatConversationSummary: {
             /** Format: uuid */
@@ -894,6 +941,8 @@ export interface components {
                 [key: string]: string[];
             };
         };
+        /** Format: binary */
+        IFormFile: string;
         JsonElement: unknown;
         KspBlock: {
             kind: string;
@@ -1851,6 +1900,61 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ChatMessageResponse"];
                 };
+            };
+        };
+    };
+    AttachChatFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["IFormFile"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatAttachmentResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteChatAttachment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

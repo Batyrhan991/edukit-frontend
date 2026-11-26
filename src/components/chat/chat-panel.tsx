@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, BookOpen, LoaderCircle, MessageSquarePlus, Plus, Send, Sparkles, Trash2, TriangleAlert, X } from "lucide-react";
+import { ArrowLeft, BookOpen, FileText, LoaderCircle, MessageSquarePlus, Paperclip, Plus, Send, Sparkles, Trash2, TriangleAlert, X } from "lucide-react";
 import { Fragment, useCallback, useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { intlLocale, type Locale } from "@/i18n/config";
@@ -8,12 +8,17 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import { api, fieldErrors, readProblem, type Credits } from "@/lib/api/browser";
 import {
   chatErrorKey,
+  FILE_ACCEPT,
+  fileSize,
   isPending,
   limitKey,
+  MAX_FILES,
   MAX_MEMORY,
   MAX_QUESTION,
   parseAnswer,
+  validateFile,
   validateText,
+  type Attachment,
   type ChatConversation,
   type ChatErrorKey,
   type ChatMessage,
@@ -98,7 +103,7 @@ export function ChatPanel({ t, locale }: { t: T; locale: Locale }) {
           {view.kind === "list" ? (
             <ConversationList t={t} locale={locale} onOpen={(id) => setView({ kind: "conversation", id })} onMemory={() => setView({ kind: "memory" })} />
           ) : view.kind === "conversation" ? (
-            <Conversation key={view.id} t={t} id={view.id} onBack={() => setView({ kind: "list" })} />
+            <Conversation key={view.id} t={t} locale={locale} id={view.id} onBack={() => setView({ kind: "list" })} />
           ) : (
             <Memory t={t} onBack={() => setView({ kind: "list" })} />
           )}
@@ -207,12 +212,14 @@ function ConversationList({ t, locale, onOpen, onMemory }: { t: T; locale: Local
   );
 }
 
-function Conversation({ t, id, onBack }: { t: T; id: string; onBack: () => void }) {
+function Conversation({ t, locale, id, onBack }: { t: T; locale: Locale; id: string; onBack: () => void }) {
   const [conversation, setConversation] = useState<ChatConversation | null>(null);
   const [error, setError] = useState<ChatErrorKey | FieldError | null>(null);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const keyRef = useRef(newKey());
   const endRef = useRef<HTMLDivElement>(null);
   const questionId = useId();
@@ -286,6 +293,41 @@ function Conversation({ t, id, onBack }: { t: T; id: string; onBack: () => void 
     else setError(chatErrorKey((await readProblem(response)).code, response.status));
   }
 
+  /** Файл отправляется сразу; сервер проверяет тип, антивирусом и извлекает текст (ADR-0046). */
+  async function upload(file: File) {
+    const local = validateFile(file.name, file.size);
+    setError(local);
+    if (local) return;
+    setUploading(file.name);
+    const form = new FormData();
+    form.append("file", file, file.name);
+    let response: Response;
+    try {
+      response = await fetch(`/api/v1/chat/conversations/${id}/attachments`, {
+        method: "POST",
+        headers: { accept: "application/json", "X-EduKit-Csrf": "1" },
+        body: form,
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+    } catch {
+      response = Response.json({ code: "api.unreachable" }, { status: 503 });
+    }
+    setUploading(null);
+    if (response.ok) {
+      await load();
+      return;
+    }
+    const problem = await readProblem(response);
+    setError((fieldErrors(problem).file as FieldError | undefined) ?? chatErrorKey(problem.code, problem.status));
+  }
+
+  async function removeFile(file: Attachment) {
+    const response = await api("DELETE", `/chat/attachments/${file.id}`);
+    if (!response.ok && response.status !== 404) setError(chatErrorKey((await readProblem(response)).code, response.status));
+    await load();
+  }
+
   async function remember(value: string) {
     const response = await api("POST", "/chat/memory", { text: value });
     if (!response.ok) {
@@ -333,6 +375,33 @@ function Conversation({ t, id, onBack }: { t: T; id: string; onBack: () => void 
       </div>
       <form onSubmit={send} noValidate className="space-y-2 border-t border-border p-4">
         <ErrorText t={t} error={error} />
+        {conversation && (conversation.attachments.length > 0 || uploading) ? (
+          <section aria-label={t.files}>
+            <ul className="flex flex-wrap gap-1.5" data-testid="chat-files">
+              {conversation.attachments.map((file) => (
+                <li key={file.id} className="flex max-w-full items-center gap-1 border border-border bg-card py-0.5 pr-0.5 pl-2 text-xs">
+                  <FileText aria-hidden className="size-3.5 shrink-0 text-primary" />
+                  <span className="truncate" title={file.fileName}>
+                    {file.fileName}
+                  </span>
+                  <span className="shrink-0 text-muted-foreground">
+                    {fileSize(Number(file.sizeBytes), intlLocale[locale], t)}
+                    {file.truncated ? ` · ${t.fileTruncated}` : ""}
+                  </span>
+                  <Button variant="ghost" size="icon-xs" aria-label={fmt(t.fileDelete, { name: file.fileName })} onClick={() => removeFile(file)}>
+                    <X aria-hidden />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            {uploading ? (
+              <p className="mt-1 flex items-center gap-2 text-xs text-muted-foreground" role="status">
+                <LoaderCircle aria-hidden className="size-3.5 animate-spin motion-reduce:animate-none" />
+                {fmt(t.uploading, { name: uploading })}
+              </p>
+            ) : null}
+          </section>
+        ) : null}
         <label htmlFor={questionId} className="sr-only">
           {t.question}
         </label>
@@ -353,6 +422,32 @@ function Conversation({ t, id, onBack }: { t: T; id: string; onBack: () => void 
           data-testid="chat-input"
         />
         <div className="flex items-center gap-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept={FILE_ACCEPT}
+            className="sr-only"
+            tabIndex={-1}
+            aria-hidden
+            data-testid="chat-file-input"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = ""; // тот же файл можно выбрать снова
+              if (file) void upload(file);
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label={t.attach}
+            title={t.attachHint}
+            disabled={!conversation || uploading !== null || (conversation?.attachments.length ?? 0) >= MAX_FILES}
+            onClick={() => fileRef.current?.click()}
+            data-testid="chat-attach"
+          >
+            <Paperclip aria-hidden />
+          </Button>
           <p className="flex-1 text-xs text-muted-foreground">{t.sendHint}</p>
           <Button type="submit" disabled={!conversation || sending || waiting} data-testid="chat-send">
             {sending ? <LoaderCircle aria-hidden className="animate-spin motion-reduce:animate-none" /> : <Send aria-hidden />}
