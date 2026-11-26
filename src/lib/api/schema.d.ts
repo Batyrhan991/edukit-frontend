@@ -370,6 +370,107 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/chat/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Беседы за 30 дней, сначала недавние. */
+        get: operations["ListChatConversations"];
+        put?: never;
+        post: operations["CreateChatConversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/conversations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Беседа с вопросами и ответами. */
+        get: operations["GetChatConversation"];
+        /** Название (null — без изменений), предмет и класс (null — убрать) для поиска по учебной программе. */
+        put: operations["UpdateChatConversation"];
+        post?: never;
+        delete: operations["DeleteChatConversation"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/conversations/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Задать вопрос. Заголовок Idempotency-Key обязателен: повтор с тем же ключом не списывает кредиты повторно. */
+        post: operations["SendChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/messages/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CancelChatMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/memory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Предпочтения учителя, которые чат учитывает в ответах. */
+        get: operations["ListAiMemory"];
+        put?: never;
+        post: operations["AddAiMemory"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/chat/memory/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["DeleteAiMemory"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/documents": {
         parameters: {
             query?: never;
@@ -592,6 +693,9 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AddMemoryRequest: {
+            text: string;
+        };
         AdminOverviewResponse: {
             /** Format: int32 */
             usersTotal: number | string;
@@ -604,6 +708,13 @@ export interface components {
             features: {
                 [key: string]: boolean;
             };
+        };
+        AiMemoryResponse: {
+            /** Format: uuid */
+            id: string;
+            text: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         AuditEntryResponse: {
             /** Format: uuid */
@@ -623,8 +734,66 @@ export interface components {
         AuthProvidersResponse: {
             google: boolean;
         };
+        ChatAnswer: {
+            text: string;
+            sources: components["schemas"]["ChatSourceRef"][];
+            suggestedMemory: null | string;
+            warnings: string[];
+        };
+        ChatConversationResponse: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            subject: null | string;
+            grade: null | string;
+            language: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+            messages: components["schemas"]["ChatMessageResponse"][];
+        };
+        ChatConversationSummary: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            subject: null | string;
+            grade: null | string;
+            language: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ChatMessageResponse: {
+            /** Format: uuid */
+            id: string;
+            text: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            generationId: string;
+            status: string;
+            errorCode: null | string;
+            /** Format: int32 */
+            creditsReserved: number | string;
+            /** Format: int32 */
+            creditsCharged: number | string;
+            mock: boolean;
+            answer: null | components["schemas"]["ChatAnswer"];
+        };
+        ChatSourceRef: {
+            id: string;
+            title: string;
+        };
         CopyDocumentRequest: {
             title: string;
+        };
+        CreateConversationRequest: {
+            title: null | string;
+            subject: null | string;
+            grade: null | string;
+            language: string;
         };
         CreateDocumentRequest: {
             title: string;
@@ -834,6 +1003,9 @@ export interface components {
             password: string;
             locale: null | string;
         };
+        SendChatMessageRequest: {
+            text: string;
+        };
         SessionResponse: {
             /** Format: uuid */
             id: string;
@@ -907,6 +1079,11 @@ export interface components {
             features: {
                 [key: string]: boolean;
             };
+        };
+        UpdateConversationRequest: {
+            title: null | string;
+            subject: null | string;
+            grade: null | string;
         };
         UpdateDocumentRequest: {
             title: string;
@@ -1476,6 +1653,277 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["GenerationResponse"];
                 };
+            };
+        };
+    };
+    ListChatConversations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatConversationSummary"][];
+                };
+            };
+        };
+    };
+    CreateChatConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatConversationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+        };
+    };
+    GetChatConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatConversationResponse"];
+                };
+            };
+        };
+    };
+    UpdateChatConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatConversationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteChatConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    SendChatMessage: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendChatMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessageResponse"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessageResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+        };
+    };
+    CancelChatMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChatMessageResponse"];
+                };
+            };
+        };
+    };
+    ListAiMemory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiMemoryResponse"][];
+                };
+            };
+        };
+    };
+    AddAiMemory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddMemoryRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiMemoryResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteAiMemory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

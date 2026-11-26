@@ -144,3 +144,10 @@
     background-image: none;
   }
 }
+
+/* AI-помощник открыт: на широком экране страница освобождает место под панелью справа (28rem). */
+@media (min-width: 64rem) {
+  html.chat-open body {
+    padding-right: 28rem;
+  }
+}
