@@ -9,6 +9,7 @@ export type SignInMethods = Schemas["SignInMethodsResponse"];
 export type KspDocument = Schemas["KspDocument"];
 export type Generation = Schemas["GenerationResponse"];
 export type Credits = Schemas["CreditBalanceResponse"];
+export type DocumentData = Schemas["DocumentResponse"];
 
 /** Ответ API в браузере: либо данные, либо разобранная ошибка. */
 export type ApiProblem = { status: number; code?: string; errors?: Record<string, string[]> };

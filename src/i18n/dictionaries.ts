@@ -33,3 +33,9 @@ export async function getDictionarySafe(): Promise<{ locale: Locale; t: Dictiona
   const current = hasLocale(value) ? value : defaultLocale;
   return { locale: current, t: await dictionaries[current]() };
 }
+
+/** Подписи КСП на всех языках: документ получает подписи на языке самого плана, а не интерфейса. */
+export async function getKspLabels(): Promise<Record<Locale, Dictionary["ksp"]>> {
+  const [kk, ru, en] = await Promise.all([dictionaries.kk(), dictionaries.ru(), dictionaries.en()]);
+  return { kk: kk.ksp, ru: ru.ksp, en: en.ksp };
+}

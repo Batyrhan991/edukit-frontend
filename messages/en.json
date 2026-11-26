@@ -220,7 +220,8 @@
     "sessionsLink": "My sign-ins",
     "logout": "Sign out",
     "securityLink": "Security",
-    "kspLink": "Create a lesson plan"
+    "kspLink": "Create a lesson plan",
+    "documentsLink": "My documents"
   },
   "sessions": {
     "title": "My sign-ins",
@@ -363,6 +364,46 @@
       "forbidden": "AI generators are available to teachers only.",
       "disabled": "AI generators are turned off for now.",
       "unknown": "Could not create the plan. Please try again."
+    },
+    "openInEditor": "Open in editor",
+    "lessonTypeTitle": "Lesson type"
+  },
+  "documents": {
+    "title": "My documents",
+    "intro": "Saved plans and materials. They are not deleted together with the generation history.",
+    "empty": "No documents yet. Create a lesson plan and open it in the editor.",
+    "back": "← Back to documents",
+    "updated": "Updated {date}",
+    "open": "Open",
+    "titleLabel": "Document title",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "unsaved": "Unsaved changes",
+    "delete": "Delete",
+    "deleteConfirm": "Delete this document? It can only be restored through support.",
+    "conflictTitle": "The document was changed in another tab or on another device",
+    "conflictText": "Your edits are not saved. Choose: load the current version (your edits will be lost) or save your version over it.",
+    "loadServer": "Load current version",
+    "overwrite": "Save mine over it",
+    "toolbar": {
+      "label": "Formatting",
+      "bold": "Bold",
+      "italic": "Italic",
+      "underline": "Underline",
+      "h2": "Heading",
+      "h3": "Subheading",
+      "bullet": "Bulleted list",
+      "ordered": "Numbered list",
+      "undo": "Undo",
+      "redo": "Redo"
+    },
+    "errors": {
+      "invalid": "The document has unsupported elements and was not saved.",
+      "notFound": "The document was not found or was deleted.",
+      "limit": "Document limit reached.",
+      "disabled": "Documents are turned off for now.",
+      "unknown": "Could not save. Check your connection and try again."
     }
   }
 }

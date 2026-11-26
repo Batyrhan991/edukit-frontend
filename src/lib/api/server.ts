@@ -9,6 +9,8 @@ export type Session = components["schemas"]["SessionResponse"];
 export type MfaStatus = components["schemas"]["MfaStatusResponse"];
 export type SignInMethods = components["schemas"]["SignInMethodsResponse"];
 export type Credits = components["schemas"]["CreditBalanceResponse"];
+export type DocumentData = components["schemas"]["DocumentResponse"];
+export type DocumentListItem = components["schemas"]["DocumentListItem"];
 export type AdminOverview = components["schemas"]["AdminOverviewResponse"];
 export type AuditEntry = components["schemas"]["AuditEntryResponse"];
 
@@ -85,6 +87,18 @@ export async function getCredits(): Promise<ApiResult<Credits>> {
   const token = await sessionToken();
   if (!token) return { ok: false, reason: "unauthorized", status: 401 };
   return call(() => apiClient(token).GET("/api/v1/credits", { signal: AbortSignal.timeout(5000) }));
+}
+
+export async function listDocuments(): Promise<ApiResult<DocumentListItem[]>> {
+  const token = await sessionToken();
+  if (!token) return { ok: false, reason: "unauthorized", status: 401 };
+  return call(() => apiClient(token).GET("/api/v1/documents", { signal: AbortSignal.timeout(5000) }));
+}
+
+export async function getDocument(id: string): Promise<ApiResult<DocumentData>> {
+  const token = await sessionToken();
+  if (!token) return { ok: false, reason: "unauthorized", status: 401 };
+  return call(() => apiClient(token).GET("/api/v1/documents/{id}", { params: { path: { id } }, signal: AbortSignal.timeout(5000) }));
 }
 
 export async function getAdminOverview(): Promise<ApiResult<AdminOverview>> {

@@ -61,9 +61,14 @@ async function TeacherHome() {
       <div className="squared-paper border border-border p-6">
         <div className="max-w-prose space-y-4 bg-card p-4">
           <p>{t.cabinet.intro}</p>
-          <Button asChild>
-            <Link href={`/${locale}/teacher/ksp`}>{t.cabinet.kspLink}</Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild>
+              <Link href={`/${locale}/teacher/ksp`}>{t.cabinet.kspLink}</Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href={`/${locale}/teacher/documents`}>{t.cabinet.documentsLink}</Link>
+            </Button>
+          </div>
         </div>
       </div>
     </section>

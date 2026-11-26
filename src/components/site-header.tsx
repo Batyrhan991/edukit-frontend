@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
-import { LocaleSwitcher } from "./locale-switcher";
+import { Suspense } from "react";
+import { LocaleLinks, LocaleSwitcher } from "./locale-switcher";
 import { ThemeSwitcher } from "./theme-switcher";
 
 export function SiteHeader({ locale, t }: { locale: Locale; t: Dictionary }) {
@@ -38,7 +39,9 @@ export function SiteHeader({ locale, t }: { locale: Locale; t: Dictionary }) {
           >
             {t.nav.signIn}
           </Link>
-          <LocaleSwitcher current={locale} label={t.nav.language} />
+          <Suspense fallback={<LocaleLinks current={locale} label={t.nav.language} pathname={`/${locale}`} />}>
+            <LocaleSwitcher current={locale} label={t.nav.language} />
+          </Suspense>
           <ThemeSwitcher
             labels={{
               theme: t.nav.theme,

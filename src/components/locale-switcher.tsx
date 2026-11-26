@@ -10,7 +10,14 @@ const short: Record<Locale, string> = { kk: "Қаз", ru: "Рус", en: "Eng" };
 
 /** Смена языка с сохранением текущей страницы. */
 export function LocaleSwitcher({ current, label }: { current: Locale; label: string }) {
-  const pathname = usePathname() ?? `/${current}`;
+  return <LocaleLinks current={current} label={label} pathname={usePathname() ?? `/${current}`} />;
+}
+
+/**
+ * Ссылки на языки для заданного адреса. Без адреса (пока страница с переменной частью адреса загружается
+ * внутри Suspense) ведут на главные страницы языков.
+ */
+export function LocaleLinks({ current, label, pathname }: { current: Locale; label: string; pathname: string }) {
   const rest = pathname.split("/").slice(2).join("/");
 
   return (

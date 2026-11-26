@@ -1,6 +1,7 @@
 "use client";
 
-import { Coins, LoaderCircle, Sparkles } from "lucide-react";
+import { Coins, FilePenLine, LoaderCircle, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Field, TextInput } from "@/components/auth/form-parts";
 import { StatePanel } from "@/components/state-panel";
@@ -11,6 +12,7 @@ import { api, fieldErrors, readProblem, type Credits, type Generation } from "@/
 import { fmt, formatDateTime } from "@/lib/format";
 import { intlLocale } from "@/i18n/config";
 import { kspErrorKey, type KspErrorKey } from "@/lib/ksp";
+import { kspToDoc } from "@/lib/ksp-doc";
 import { KspView } from "./ksp-view";
 
 type T = Dictionary["ksp"];
@@ -27,7 +29,19 @@ function newKey(): string {
 
 type Form = { subject: string; grade: string; topic: string; duration: string; lessonType: string; objectives: string; notes: string; language: Locale };
 
-export function KspGenerator({ t, locale, initialCredits }: { t: T; locale: Locale; initialCredits: Credits }) {
+export function KspGenerator({
+  t,
+  locale,
+  initialCredits,
+  docLabels,
+}: {
+  t: T;
+  locale: Locale;
+  initialCredits: Credits;
+  docLabels: Record<Locale, T>;
+}) {
+  const router = useRouter();
+  const [opening, setOpening] = useState(false);
   const [form, setForm] = useState<Form>({ subject: "", grade: "", topic: "", duration: "45", lessonType: "", objectives: "", notes: "", language: locale });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [error, setError] = useState<ErrorKey | null>(null);
@@ -113,6 +127,26 @@ export function KspGenerator({ t, locale, initialCredits }: { t: T; locale: Loca
     setErrors(fieldErrors(problem));
     setError(problem.errors ? null : kspErrorKey(problem.code, problem.status));
     setBusy(false);
+  }
+
+  /** Сохранить план как документ (подписи — на языке плана) и открыть в редакторе. */
+  async function openInEditor() {
+    if (!generation?.ksp) return;
+    setOpening(true);
+    const labels = docLabels[(generation.language as Locale) in docLabels ? (generation.language as Locale) : locale];
+    const response = await api("POST", "/documents", {
+      title: generation.ksp.topic.slice(0, 200),
+      kind: "ksp",
+      content: kspToDoc(generation.ksp, labels),
+      sourceGenerationId: generation.id,
+    });
+    if (response.ok) {
+      const created = (await response.json()) as { id: string };
+      router.push(`/${locale}/teacher/documents/${created.id}`);
+      return;
+    }
+    setOpening(false);
+    setError("unknown");
   }
 
   async function cancel() {
@@ -205,6 +239,10 @@ export function KspGenerator({ t, locale, initialCredits }: { t: T; locale: Loca
                 </ul>
               </StatePanel>
             ) : null}
+            <Button onClick={openInEditor} disabled={opening}>
+              <FilePenLine aria-hidden />
+              {t.openInEditor}
+            </Button>
             <KspView t={t} ksp={generation.ksp!} />
           </div>
         ) : null}

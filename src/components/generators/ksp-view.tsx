@@ -55,7 +55,7 @@ export function KspView({ t, ksp }: { t: T; ksp: KspDocument }) {
             <dd className="font-medium">{ksp.grade}</dd>
           </div>
           <div>
-            <dt className="text-muted-foreground">{t.lessonType}</dt>
+            <dt className="text-muted-foreground">{t.lessonTypeTitle}</dt>
             <dd className="font-medium">{ksp.lessonType}</dd>
           </div>
         </dl>
