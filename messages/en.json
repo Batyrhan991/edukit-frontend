@@ -405,6 +405,9 @@
       "limit": "Document limit reached.",
       "disabled": "Documents are turned off for now.",
       "unknown": "Could not save. Check your connection and try again."
-    }
+    },
+    "downloadDocx": "Download Word",
+    "downloadPdf": "Download PDF",
+    "saveBeforeDownload": "Save the document to download your latest edits."
   }
 }

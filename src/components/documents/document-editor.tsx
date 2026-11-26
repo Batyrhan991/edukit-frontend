@@ -3,7 +3,7 @@
 import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
 import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { Bold, Heading2, Heading3, Italic, List, ListOrdered, Redo2, Underline, Undo2, type LucideIcon } from "lucide-react";
+import { Bold, Download, Heading2, Heading3, Italic, List, ListOrdered, Redo2, Underline, Undo2, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Field, TextInput } from "@/components/auth/form-parts";
@@ -201,6 +201,30 @@ export function DocumentEditor({ t, locale, initial }: { t: T; locale: Locale; i
         <Button variant="outline" onClick={remove}>
           {t.delete}
         </Button>
+      </div>
+
+      {/* Скачивание — сохранённой версии с сервера (ADR-0040); с несохранёнными правками сначала сохранить. */}
+      <div className="flex flex-wrap items-center gap-2">
+        {(["docx", "pdf"] as const).map((format) =>
+          state === "saved" ? (
+            <Button key={format} asChild variant="secondary">
+              <a href={`/api/v1/documents/${initial.id}/export?format=${format}`} download>
+                <Download aria-hidden />
+                {format === "docx" ? t.downloadDocx : t.downloadPdf}
+              </a>
+            </Button>
+          ) : (
+            <Button key={format} variant="secondary" disabled aria-describedby="download-hint">
+              <Download aria-hidden />
+              {format === "docx" ? t.downloadDocx : t.downloadPdf}
+            </Button>
+          ),
+        )}
+        {state !== "saved" ? (
+          <p id="download-hint" className="text-sm text-muted-foreground">
+            {t.saveBeforeDownload}
+          </p>
+        ) : null}
       </div>
 
       {error ? <StatePanel variant="error" title={t.errors[error]} /> : null}
