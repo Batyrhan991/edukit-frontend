@@ -39,3 +39,9 @@ export async function getKspLabels(): Promise<Record<Locale, Dictionary["ksp"]>>
   const [kk, ru, en] = await Promise.all([dictionaries.kk(), dictionaries.ru(), dictionaries.en()]);
   return { kk: kk.ksp, ru: ru.ksp, en: en.ksp };
 }
+
+/** Подписи СОР/СОЧ на всех языках: документы получают подписи на языке самой работы. */
+export async function getSorLabels(): Promise<Record<Locale, Dictionary["sor"]>> {
+  const [kk, ru, en] = await Promise.all([dictionaries.kk(), dictionaries.ru(), dictionaries.en()]);
+  return { kk: kk.sor, ru: ru.sor, en: en.sor };
+}

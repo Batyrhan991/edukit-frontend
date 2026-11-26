@@ -8,7 +8,7 @@ const password = "e2e long passphrase";
 
 async function verifyLink(email: string): Promise<string> {
   for (let attempt = 0; attempt < 30; attempt++) {
-    const list = await (await fetch(`${mailpit}/api/v1/messages?limit=100`)).json();
+    const list = await (await fetch(`${mailpit}/api/v1/search?query=${encodeURIComponent(`to:"${email}"`)}&limit=20`)).json();
     const message = list.messages.find((m: { To: { Address: string }[] }) => m.To[0].Address === email);
     if (message) {
       const full = await (await fetch(`${mailpit}/api/v1/message/${message.ID}`)).json();

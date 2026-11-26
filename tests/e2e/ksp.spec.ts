@@ -6,7 +6,7 @@ const password = "e2e long passphrase";
 
 async function verifyLink(email: string): Promise<string> {
   for (let attempt = 0; attempt < 30; attempt++) {
-    const list = await (await fetch(`${mailpit}/api/v1/messages?limit=100`)).json();
+    const list = await (await fetch(`${mailpit}/api/v1/search?query=${encodeURIComponent(`to:"${email}"`)}&limit=20`)).json();
     const message = list.messages.find((m: { To: { Address: string }[] }) => m.To[0].Address === email);
     if (message) {
       const full = await (await fetch(`${mailpit}/api/v1/message/${message.ID}`)).json();
@@ -150,6 +150,51 @@ test.describe("lesson plan generator (live, sample AI)", () => {
     await expect(page.getByTestId("documents")).toContainText("КСП 7 класс — Телеграмма");
   });
 
+  test("unit assessment: tasks, hidden key, credits, two documents without answers for students", async ({ page }) => {
+    await signedInTeacher(page);
+    await page.getByRole("link", { name: "Создать СОР/СОЧ" }).click();
+    await expect(page).toHaveURL(/\/ru\/teacher\/sor$/);
+    const credits = page.getByTestId("credits");
+    await expect(credits).toContainText("Кредиты: 30");
+    await expect(credits).toContainText("Стоимость СОР/СОЧ: 3");
+
+    // СОЧ без четверти не отправляется.
+    await page.getByLabel("СОЧ — за четверть").check();
+    await expect(page.getByLabel("Время выполнения, минут")).toHaveValue("40");
+    await page.getByLabel("Предмет").fill("Русская литература");
+    await page.getByLabel("Класс").fill("7");
+    await page.getByLabel("Разделы и темы четверти").fill("Образы-персонажи в рассказе «Телеграмма»");
+    await page.getByRole("button", { name: "Составить работу" }).click();
+    await expect(page.getByLabel("Четверть", { exact: true })).toHaveAttribute("aria-invalid", "true");
+
+    await page.getByLabel("СОР — за раздел").check();
+    await expect(page.getByLabel("Время выполнения, минут")).toHaveValue("20");
+    await page.getByLabel("Число заданий (необязательно)").fill("4");
+    await page.getByRole("button", { name: "Составить работу" }).click();
+
+    const work = page.getByTestId("sor-document");
+    await expect(work).toBeVisible({ timeout: 15_000 });
+    await expect(work.getByTestId("sor-task")).toHaveCount(4);
+    await expect(work).toContainText("Максимальный балл: 12");
+    // Ключ скрыт, пока учитель его не откроет.
+    await expect(work.getByTestId("sor-key")).toHaveCount(0);
+    await page.getByRole("button", { name: "Показать ключ" }).click();
+    await expect(work.getByTestId("sor-key")).toHaveCount(4);
+    await expect(work.getByTestId("sor-key").first()).toContainText("Образец ответа к заданию 1");
+    await expect(credits).toContainText("Кредиты: 27");
+
+    await page.getByRole("button", { name: "Сохранить в мои документы" }).click();
+    await expect(page.getByText("Сохранено в «Мои документы».")).toBeVisible();
+    await page.getByRole("link", { name: "Открыть задания" }).click();
+    const editor = page.getByRole("textbox").last();
+    await expect(editor).toContainText("Задание 4 (3 балл(ов))");
+    await expect(editor).not.toContainText("Образец ответа");
+
+    await page.goto("/ru/teacher/documents?kind=sor");
+    await expect(page.getByTestId("documents").getByRole("listitem")).toHaveCount(2);
+    await expect(page.getByTestId("documents")).toContainText("ключ для учителя");
+  });
+
   test("library: search, filter by type, copy, delete; recent documents in the cabinet", async ({ page }) => {
     await signedInTeacher(page);
     const doc = (text: string) => ({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text }] }] });
@@ -192,8 +237,10 @@ test.describe("lesson plan generator (live, sample AI)", () => {
 
     // Копия появляется вверху списка с пометкой «(копия)».
     const row = list.getByRole("listitem").filter({ hasText: "КСП: Телеграмма" });
+    const copied = page.waitForResponse((r) => r.url().endsWith("/copy") && r.request().method() === "POST");
     await row.getByRole("button", { name: "Сделать копию" }).click();
-    await expect(list.getByRole("listitem")).toHaveCount(4);
+    expect((await copied).status()).toBe(201);
+    await expect(list.getByRole("listitem")).toHaveCount(4, { timeout: 15_000 });
     await expect(list.getByRole("listitem").first()).toContainText("КСП: Телеграмма (копия)");
 
     // Скачивание прямо из списка.

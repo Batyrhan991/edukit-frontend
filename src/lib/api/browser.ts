@@ -7,6 +7,7 @@ export type LoginResponse = Schemas["LoginResponse"];
 export type MfaStatus = Schemas["MfaStatusResponse"];
 export type SignInMethods = Schemas["SignInMethodsResponse"];
 export type KspDocument = Schemas["KspDocument"];
+export type SorDocument = Schemas["SorDocument"];
 export type Generation = Schemas["GenerationResponse"];
 export type Credits = Schemas["CreditBalanceResponse"];
 export type DocumentData = Schemas["DocumentResponse"];
