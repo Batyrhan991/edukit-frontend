@@ -360,6 +360,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Личная библиотека: q — поиск по названию, kind — ksp/text, offset и limit (до 100) — страница. */
         get: operations["ListDocuments"];
         put?: never;
         post: operations["CreateDocument"];
@@ -381,6 +382,23 @@ export interface paths {
         put: operations["UpdateDocument"];
         post?: never;
         delete: operations["DeleteDocument"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/documents/{id}/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Копия своего документа с новым названием (сохранённая версия). */
+        post: operations["CopyDocument"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -588,6 +606,9 @@ export interface components {
         AuthProvidersResponse: {
             google: boolean;
         };
+        CopyDocumentRequest: {
+            title: string;
+        };
         CreateDocumentRequest: {
             title: string;
             kind: string;
@@ -622,6 +643,11 @@ export interface components {
             version: number | string;
             /** Format: date-time */
             updatedAt: string;
+        };
+        DocumentPage: {
+            items: components["schemas"]["DocumentListItem"][];
+            /** Format: int32 */
+            total: number | string;
         };
         DocumentResponse: {
             /** Format: uuid */
@@ -1343,6 +1369,9 @@ export interface operations {
     ListDocuments: {
         parameters: {
             query?: {
+                q?: string;
+                kind?: string;
+                offset?: number | string;
                 limit?: number | string;
             };
             header?: never;
@@ -1357,7 +1386,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DocumentListItem"][];
+                    "application/json": components["schemas"]["DocumentPage"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
                 };
             };
         };
@@ -1478,6 +1516,41 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    CopyDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CopyDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
             };
         };
     };

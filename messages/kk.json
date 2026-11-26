@@ -408,6 +408,29 @@
     },
     "downloadDocx": "Word-та жүктеу",
     "downloadPdf": "PDF жүктеу",
-    "saveBeforeDownload": "Соңғы түзетулерді жүктеу үшін құжатты сақтаңыз."
+    "saveBeforeDownload": "Соңғы түзетулерді жүктеу үшін құжатты сақтаңыз.",
+    "library": {
+      "searchLabel": "Атауы бойынша іздеу",
+      "searchPlaceholder": "Мысалы, Телеграмма",
+      "kindLabel": "Түрі",
+      "kindAll": "Барлығы",
+      "kindKsp": "ҚМЖ",
+      "kindText": "Мәтін",
+      "find": "Іздеу",
+      "reset": "Тазарту",
+      "found": "Табылды: {count}",
+      "noResults": "Ештеңе табылмады. Сұрауды өзгертіңіз немесе сүзгіні тазартыңыз.",
+      "prev": "Артқа",
+      "next": "Әрі қарай",
+      "pageOf": "{page}-бет, барлығы {pages}",
+      "pagination": "Кітапхана беттері",
+      "copy": "Көшірме жасау",
+      "copySuffix": "{title} (көшірме)",
+      "copyFailed": "Көшірме жасау мүмкін болмады. Қайталап көріңіз.",
+      "deleteFailed": "Құжатты жою мүмкін болмады. Қайталап көріңіз.",
+      "actionsFor": "«{title}» құжатымен әрекеттер",
+      "recentTitle": "Соңғы құжаттар",
+      "allDocuments": "Барлық құжаттар"
+    }
   }
 }

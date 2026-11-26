@@ -11,6 +11,7 @@ export type SignInMethods = components["schemas"]["SignInMethodsResponse"];
 export type Credits = components["schemas"]["CreditBalanceResponse"];
 export type DocumentData = components["schemas"]["DocumentResponse"];
 export type DocumentListItem = components["schemas"]["DocumentListItem"];
+export type DocumentPage = components["schemas"]["DocumentPage"];
 export type AdminOverview = components["schemas"]["AdminOverviewResponse"];
 export type AuditEntry = components["schemas"]["AuditEntryResponse"];
 
@@ -89,10 +90,11 @@ export async function getCredits(): Promise<ApiResult<Credits>> {
   return call(() => apiClient(token).GET("/api/v1/credits", { signal: AbortSignal.timeout(5000) }));
 }
 
-export async function listDocuments(): Promise<ApiResult<DocumentListItem[]>> {
+/** Личная библиотека: поиск по названию, фильтр по виду, страница (offset/limit до 100). */
+export async function listDocuments(query: { q?: string; kind?: "ksp" | "text"; offset?: number; limit?: number } = {}): Promise<ApiResult<DocumentPage>> {
   const token = await sessionToken();
   if (!token) return { ok: false, reason: "unauthorized", status: 401 };
-  return call(() => apiClient(token).GET("/api/v1/documents", { signal: AbortSignal.timeout(5000) }));
+  return call(() => apiClient(token).GET("/api/v1/documents", { params: { query }, signal: AbortSignal.timeout(5000) }));
 }
 
 export async function getDocument(id: string): Promise<ApiResult<DocumentData>> {
