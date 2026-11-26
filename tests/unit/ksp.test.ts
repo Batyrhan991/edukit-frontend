@@ -11,6 +11,7 @@ describe("kspErrorKey", () => {
     ["ai.timeout", undefined, "timeout"],
     ["ai.interrupted", undefined, "interrupted"],
     ["ai.busy", undefined, "busy"],
+    ["ai.budget_exceeded", undefined, "budget"],
     ["feature.disabled", 404, "disabled"],
     [undefined, 403, "forbidden"],
     [undefined, 429, "tooMany"],

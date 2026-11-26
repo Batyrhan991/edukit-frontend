@@ -363,7 +363,8 @@
       "out_of_range": "Duration must be 20–180 minutes.",
       "forbidden": "AI generators are available to teachers only.",
       "disabled": "AI generators are turned off for now.",
-      "unknown": "Could not create the plan. Please try again."
+      "unknown": "Could not create the plan. Please try again.",
+      "budget": "The monthly AI limit has been reached. Credits returned — try next month or contact an administrator."
     },
     "openInEditor": "Open in editor",
     "lessonTypeTitle": "Lesson type"
