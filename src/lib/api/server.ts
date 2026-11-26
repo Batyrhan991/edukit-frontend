@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import createClient from "openapi-fetch";
 import type { components, paths } from "./schema";
 
@@ -56,6 +57,7 @@ async function sessionToken(): Promise<string | undefined> {
 }
 
 export async function getSystemInfo(): Promise<ApiResult<SystemInfo>> {
+  await connection(); // данные на момент запроса, а не замороженные при сборке сайта
   return call(() => apiClient().GET("/api/v1/system/info", { signal: AbortSignal.timeout(5000) }));
 }
 
@@ -73,6 +75,8 @@ export async function getSessions(): Promise<ApiResult<Session[]>> {
 
 /** Включённые способы входа. При недоступном API кнопку Google не показываем. */
 export async function getAuthProviders(): Promise<{ google: boolean }> {
+  // Без этого страница входа собиралась заранее: если API во время сборки не работал, кнопка Google пропадала навсегда.
+  await connection();
   const result = await call(() => apiClient().GET("/api/v1/auth/providers", { signal: AbortSignal.timeout(5000) }));
   return { google: result.ok && result.data.google };
 }
