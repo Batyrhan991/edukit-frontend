@@ -353,6 +353,39 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListDocuments"];
+        put?: never;
+        post: operations["CreateDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/documents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetDocument"];
+        /** Сохранить документ. version — версия, с которой начата правка; если на сервере новее — 409 и актуальный документ. */
+        put: operations["UpdateDocument"];
+        post?: never;
+        delete: operations["DeleteDocument"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/mfa/verify": {
         parameters: {
             query?: never;
@@ -538,6 +571,13 @@ export interface components {
         AuthProvidersResponse: {
             google: boolean;
         };
+        CreateDocumentRequest: {
+            title: string;
+            kind: string;
+            content: components["schemas"]["JsonElement"];
+            /** Format: uuid */
+            sourceGenerationId: null | string;
+        };
         CreditBalanceResponse: {
             /** Format: int32 */
             balance: number | string;
@@ -555,6 +595,32 @@ export interface components {
             tool: string;
             /** Format: int32 */
             credits: number | string;
+        };
+        DocumentListItem: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            kind: string;
+            /** Format: int32 */
+            version: number | string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        DocumentResponse: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            kind: string;
+            contentSchema: string;
+            content: components["schemas"]["JsonElement"];
+            /** Format: int32 */
+            version: number | string;
+            /** Format: uuid */
+            sourceGenerationId: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
         };
         FeatureFlagUpdateRequest: {
             enabled: boolean;
@@ -598,6 +664,7 @@ export interface components {
                 [key: string]: string[];
             };
         };
+        JsonElement: unknown;
         KspBlock: {
             kind: string;
             label: null | string;
@@ -728,6 +795,12 @@ export interface components {
             features: {
                 [key: string]: boolean;
             };
+        };
+        UpdateDocumentRequest: {
+            title: string;
+            content: components["schemas"]["JsonElement"];
+            /** Format: int32 */
+            version: number | string;
         };
         VerifyEmailRequest: {
             /** Format: uuid */
@@ -1247,6 +1320,147 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["GenerationResponse"];
                 };
+            };
+        };
+    };
+    ListDocuments: {
+        parameters: {
+            query?: {
+                limit?: number | string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentListItem"][];
+                };
+            };
+        };
+    };
+    CreateDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+        };
+    };
+    GetDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentResponse"];
+                };
+            };
+        };
+    };
+    UpdateDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentResponse"];
+                };
+            };
+        };
+    };
+    DeleteDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

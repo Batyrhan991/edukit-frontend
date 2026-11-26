@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const live = !!process.env.E2E_API_URL;
 const mailpit = process.env.E2E_MAILPIT_URL ?? "http://localhost:8025";
@@ -16,6 +16,13 @@ async function verifyLink(email: string): Promise<string> {
     await new Promise((r) => setTimeout(r, 500));
   }
   throw new Error(`No verify-email message for ${email}`);
+}
+
+/** Курсор в начало строки (на узком экране заголовок переносится, End ставил бы курсор в конец первой строки). */
+async function editAtStart(page: Page, line: Locator, text: string) {
+  await line.click({ position: { x: 2, y: 4 } });
+  await page.keyboard.press("Home");
+  await page.keyboard.type(text);
 }
 
 async function signedInTeacher(page: Page) {
@@ -36,6 +43,11 @@ async function signedInTeacher(page: Page) {
   await page.getByRole("button", { name: "Войти" }).last().click();
   await expect(page).toHaveURL(/\/ru\/teacher$/);
 }
+
+test("documents page asks to sign in", async ({ page }) => {
+  await page.goto("/ru/teacher/documents");
+  await expect(page).toHaveURL(/\/ru\/login/);
+});
 
 test("lesson plan page asks to sign in", async ({ page }) => {
   await page.goto("/ru/teacher/ksp");
@@ -76,5 +88,48 @@ test.describe("lesson plan generator (live, sample AI)", () => {
     await expect(plan.getByRole("table")).toContainText("Организационный момент");
     await expect(plan.getByRole("heading", { name: "Ход урока" })).toBeVisible();
     await expect(credits).toContainText("Кредиты: 27");
+
+    // Открыть план в редакторе, поправить, сохранить и открыть заново.
+    await page.getByRole("button", { name: "Открыть в редакторе" }).click();
+    await expect(page).toHaveURL(/\/ru\/teacher\/documents\/[0-9a-f-]{36}$/);
+    const editor = page.getByRole("textbox", { name: "Образы-персонажи в рассказе «Телеграмма»" });
+    await expect(editor).toContainText("Паспорт урока");
+    await expect(editor).toContainText("Учитель: ");
+    await expect(page.getByTestId("save-state")).toHaveText("Сохранено");
+
+    await page.getByLabel("Название документа").fill("КСП 7 класс — Телеграмма");
+    await editAtStart(page, editor.getByRole("heading", { name: "Образы-персонажи в рассказе «Телеграмма»" }), "Правка учителя. ");
+    await expect(page.getByTestId("save-state")).toHaveText("Есть несохранённые изменения");
+    const saved = page.waitForResponse((r) => r.url().includes("/api/v1/documents/") && r.request().method() === "PUT");
+    await page.getByRole("button", { name: "Сохранить" }).click();
+    const response = await saved;
+    // Сервер принимает документ из редактора как есть (в т. ч. атрибуты, которые Tiptap добавляет сам).
+    expect(response.status()).toBe(200);
+    await expect(page.getByTestId("save-state")).toHaveText("Сохранено");
+
+    const documentUrl = page.url();
+    await page.reload();
+    await expect(page.getByLabel("Название документа")).toHaveValue("КСП 7 класс — Телеграмма");
+    await expect(page.getByRole("textbox", { name: "КСП 7 класс — Телеграмма" })).toContainText("Правка учителя. Образы-персонажи");
+
+    // Вторая вкладка с устаревшей версией: сохранение не перезаписывает правку молча.
+    const second = await page.context().newPage();
+    await second.goto(documentUrl);
+    await expect(second.getByTestId("save-state")).toHaveText("Сохранено");
+    await editAtStart(page, page.getByRole("textbox", { name: "КСП 7 класс — Телеграмма" }).getByRole("heading").first(), "Вкладка 1. ");
+    await page.getByRole("button", { name: "Сохранить" }).click();
+    await expect(page.getByTestId("save-state")).toHaveText("Сохранено");
+
+    await editAtStart(second, second.getByRole("textbox", { name: "КСП 7 класс — Телеграмма" }).getByRole("heading").first(), "Вкладка 2. ");
+    await second.getByRole("button", { name: "Сохранить" }).click();
+    await expect(second.getByText("Документ изменён в другой вкладке")).toBeVisible();
+    await second.getByRole("button", { name: "Загрузить актуальную" }).click();
+    await expect(second.getByRole("textbox", { name: "КСП 7 класс — Телеграмма" })).toContainText("Вкладка 1. ");
+    await expect(second.getByRole("textbox", { name: "КСП 7 класс — Телеграмма" })).not.toContainText("Вкладка 2. ");
+    await second.close();
+
+    // Документ в списке «Мои документы».
+    await page.goto("/ru/teacher/documents");
+    await expect(page.getByTestId("documents")).toContainText("КСП 7 класс — Телеграмма");
   });
 });

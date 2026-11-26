@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { KspGenerator } from "@/components/generators/ksp-generator";
 import { LoadingPanel, StatePanel } from "@/components/state-panel";
-import { getDictionary } from "@/i18n/dictionaries";
+import { getDictionary, getKspLabels } from "@/i18n/dictionaries";
 import { getCredits } from "@/lib/api/server";
 
 export default async function KspPage() {
@@ -27,12 +27,12 @@ export default async function KspPage() {
 /** Права проверяет API: без сессии — на вход; ученик — 403; модуль выключен — 404. */
 async function Generator() {
   const { locale, t } = await getDictionary();
-  const credits = await getCredits();
+  const [credits, labels] = await Promise.all([getCredits(), getKspLabels()]);
   if (!credits.ok) {
     if (credits.reason === "unauthorized") redirect(`/${locale}/login?next=/${locale}/teacher/ksp`);
     if (credits.reason === "forbidden") return <StatePanel variant="forbidden" title={t.states.forbiddenTitle}>{t.ksp.errors.forbidden}</StatePanel>;
     return <StatePanel variant="error" title={credits.reason === "disabled" ? t.ksp.errors.disabled : t.auth.errors.unavailable} />;
   }
 
-  return <KspGenerator t={t.ksp} locale={locale} initialCredits={credits.data} />;
+  return <KspGenerator t={t.ksp} locale={locale} initialCredits={credits.data} docLabels={labels} />;
 }
