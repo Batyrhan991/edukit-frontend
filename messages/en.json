@@ -408,6 +408,29 @@
     },
     "downloadDocx": "Download Word",
     "downloadPdf": "Download PDF",
-    "saveBeforeDownload": "Save the document to download your latest edits."
+    "saveBeforeDownload": "Save the document to download your latest edits.",
+    "library": {
+      "searchLabel": "Search by title",
+      "searchPlaceholder": "For example, Telegram",
+      "kindLabel": "Type",
+      "kindAll": "All",
+      "kindKsp": "Lesson plan",
+      "kindText": "Text",
+      "find": "Search",
+      "reset": "Reset",
+      "found": "Found: {count}",
+      "noResults": "Nothing found. Change the search or reset the filter.",
+      "prev": "Previous",
+      "next": "Next",
+      "pageOf": "Page {page} of {pages}",
+      "pagination": "Library pages",
+      "copy": "Make a copy",
+      "copySuffix": "{title} (copy)",
+      "copyFailed": "Could not make a copy. Please try again.",
+      "deleteFailed": "Could not delete the document. Please try again.",
+      "actionsFor": "Actions for “{title}”",
+      "recentTitle": "Recent documents",
+      "allDocuments": "All documents"
+    }
   }
 }

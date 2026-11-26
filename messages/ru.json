@@ -408,6 +408,29 @@
     },
     "downloadDocx": "Скачать Word",
     "downloadPdf": "Скачать PDF",
-    "saveBeforeDownload": "Сохраните документ, чтобы скачать последние правки."
+    "saveBeforeDownload": "Сохраните документ, чтобы скачать последние правки.",
+    "library": {
+      "searchLabel": "Поиск по названию",
+      "searchPlaceholder": "Например, Телеграмма",
+      "kindLabel": "Вид",
+      "kindAll": "Все",
+      "kindKsp": "КСП",
+      "kindText": "Текст",
+      "find": "Найти",
+      "reset": "Сбросить",
+      "found": "Найдено: {count}",
+      "noResults": "Ничего не найдено. Измените запрос или сбросьте фильтр.",
+      "prev": "Назад",
+      "next": "Дальше",
+      "pageOf": "Страница {page} из {pages}",
+      "pagination": "Страницы библиотеки",
+      "copy": "Сделать копию",
+      "copySuffix": "{title} (копия)",
+      "copyFailed": "Не удалось сделать копию. Попробуйте ещё раз.",
+      "deleteFailed": "Не удалось удалить документ. Попробуйте ещё раз.",
+      "actionsFor": "Действия с документом «{title}»",
+      "recentTitle": "Последние документы",
+      "allDocuments": "Все документы"
+    }
   }
 }

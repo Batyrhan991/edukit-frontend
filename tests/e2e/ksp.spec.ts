@@ -148,4 +148,60 @@ test.describe("lesson plan generator (live, sample AI)", () => {
     await page.goto("/ru/teacher/documents");
     await expect(page.getByTestId("documents")).toContainText("КСП 7 класс — Телеграмма");
   });
+
+  test("library: search, filter by type, copy, delete; recent documents in the cabinet", async ({ page }) => {
+    await signedInTeacher(page);
+    const doc = (text: string) => ({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text }] }] });
+    for (const [title, kind] of [["КСП: Телеграмма", "ksp"], ["Заметки к уроку Абая", "text"], ["Телеграмма — вопросы", "text"]]) {
+      const created = await page.request.post("/api/v1/documents", {
+        headers: { "X-EduKit-Csrf": "1" },
+        data: { title, kind, content: doc("Синтетический текст") },
+      });
+      expect(created.status()).toBe(201);
+    }
+
+    // В кабинете — последние документы, сначала самый новый.
+    await page.goto("/ru/teacher");
+    await expect(page.getByTestId("recent-documents").getByRole("listitem").first()).toContainText("Телеграмма — вопросы");
+
+    await page.getByRole("link", { name: "Все документы" }).click();
+    await expect(page).toHaveURL(/\/ru\/teacher\/documents$/);
+    const list = page.getByTestId("documents");
+    await expect(list.getByRole("listitem")).toHaveCount(3);
+
+    // Поиск без учёта регистра + фильтр по виду; адрес сохраняет условия.
+    await page.getByLabel("Поиск по названию").fill("телеграмма");
+    await page.getByRole("button", { name: "Найти" }).click();
+    await expect(page).toHaveURL(/q=%D1%82/);
+    await expect(list.getByRole("listitem")).toHaveCount(2);
+    await page.getByLabel("Вид").selectOption("ksp");
+    await page.getByRole("button", { name: "Найти" }).click();
+    await expect(list.getByRole("listitem")).toHaveCount(1);
+    await expect(list).toContainText("КСП: Телеграмма");
+
+    await page.getByLabel("Поиск по названию").fill("нет такого");
+    await page.getByRole("button", { name: "Найти" }).click();
+    await expect(page.getByText("Ничего не найдено")).toBeVisible();
+    await page.getByRole("link", { name: "Сбросить" }).click();
+    await expect(list.getByRole("listitem")).toHaveCount(3);
+    await expect(page.getByLabel("Вид")).toHaveValue("");
+    await expect(page.getByLabel("Поиск по названию")).toHaveValue("");
+
+    // Копия появляется вверху списка с пометкой «(копия)».
+    const row = list.getByRole("listitem").filter({ hasText: "КСП: Телеграмма" });
+    await row.getByRole("button", { name: "Сделать копию" }).click();
+    await expect(list.getByRole("listitem")).toHaveCount(4);
+    await expect(list.getByRole("listitem").first()).toContainText("КСП: Телеграмма (копия)");
+
+    // Скачивание прямо из списка.
+    const downloading = page.waitForEvent("download");
+    await list.getByRole("listitem").last().getByRole("link", { name: "Скачать PDF" }).click();
+    expect((await downloading).suggestedFilename()).toBe("КСП Телеграмма.pdf");
+
+    // Удаление с подтверждением.
+    page.once("dialog", (dialog) => dialog.accept());
+    await list.getByRole("listitem").filter({ hasText: "Заметки к уроку Абая" }).getByRole("button", { name: "Удалить" }).click();
+    await expect(list.getByRole("listitem")).toHaveCount(3);
+    await expect(list).not.toContainText("Заметки к уроку Абая");
+  });
 });

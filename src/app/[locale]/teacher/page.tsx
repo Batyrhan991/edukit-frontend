@@ -5,8 +5,10 @@ import { LogoutButton } from "@/components/auth/account-actions";
 import { LoadingPanel, StatePanel } from "@/components/state-panel";
 import { Button } from "@/components/ui/button";
 import { getDictionary } from "@/i18n/dictionaries";
-import { getMe } from "@/lib/api/server";
-import { fmt } from "@/lib/format";
+import { FileText } from "lucide-react";
+import { intlLocale } from "@/i18n/config";
+import { getMe, listDocuments } from "@/lib/api/server";
+import { fmt, formatDateTime } from "@/lib/format";
 
 export default async function TeacherPage() {
   const { t } = await getDictionary();
@@ -71,6 +73,43 @@ async function TeacherHome() {
           </div>
         </div>
       </div>
+      <Suspense fallback={null}>
+        <RecentDocuments />
+      </Suspense>
+    </section>
+  );
+}
+
+/** Три последних документа. Если документы выключены или недоступны — блок просто не показывается. */
+async function RecentDocuments() {
+  const { locale, t } = await getDictionary();
+  const documents = await listDocuments({ limit: 3 });
+  if (!documents.ok || documents.data.items.length === 0) return null;
+  return (
+    <section aria-labelledby="recent-documents" className="space-y-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="recent-documents" className="text-xl font-semibold">
+          {t.documents.library.recentTitle}
+        </h2>
+        <Link className="text-sm text-primary underline-offset-4 hover:underline" href={`/${locale}/teacher/documents`}>
+          {t.documents.library.allDocuments}
+        </Link>
+      </div>
+      <ul className="divide-y divide-border border border-border bg-card" data-testid="recent-documents">
+        {documents.data.items.map((d) => (
+          <li key={d.id}>
+            <Link href={`/${locale}/teacher/documents/${d.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-muted focus-visible:bg-muted">
+              <FileText aria-hidden className="size-5 shrink-0 text-primary" />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-medium">{d.title}</span>
+                <span className="block text-sm text-muted-foreground">
+                  {fmt(t.documents.updated, { date: formatDateTime(d.updatedAt, intlLocale[locale]) })}
+                </span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
