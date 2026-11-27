@@ -40,6 +40,12 @@ export async function getKspLabels(): Promise<Record<Locale, Dictionary["ksp"]>>
   return { kk: kk.ksp, ru: ru.ksp, en: en.ksp };
 }
 
+/** Подписи КТП на всех языках: документ получает подписи на языке самого плана. */
+export async function getKtpLabels(): Promise<Record<Locale, Dictionary["ktp"]>> {
+  const [kk, ru, en] = await Promise.all([dictionaries.kk(), dictionaries.ru(), dictionaries.en()]);
+  return { kk: kk.ktp, ru: ru.ktp, en: en.ktp };
+}
+
 /** Подписи СОР/СОЧ на всех языках: документы получают подписи на языке самой работы. */
 export async function getSorLabels(): Promise<Record<Locale, Dictionary["sor"]>> {
   const [kk, ru, en] = await Promise.all([dictionaries.kk(), dictionaries.ru(), dictionaries.en()]);
