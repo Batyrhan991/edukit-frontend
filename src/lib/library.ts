@@ -3,7 +3,7 @@ export const LIBRARY_PAGE_SIZE = 20;
 export const MAX_QUERY = 200;
 export const MAX_TITLE = 200;
 
-export type LibraryKind = "ksp" | "sor" | "ktp" | "text";
+export type LibraryKind = "ksp" | "sor" | "ktp" | "test" | "text";
 export type LibraryQuery = { q: string; kind?: LibraryKind; page: number };
 
 function first(value: string | string[] | undefined): string | undefined {
@@ -13,7 +13,7 @@ function first(value: string | string[] | undefined): string | undefined {
 export function parseLibraryQuery(params: Record<string, string | string[] | undefined>): LibraryQuery {
   const q = (first(params.q) ?? "").trim().slice(0, MAX_QUERY);
   const kindValue = first(params.kind);
-  const kind = kindValue === "ksp" || kindValue === "sor" || kindValue === "ktp" || kindValue === "text" ? kindValue : undefined;
+  const kind = kindValue === "ksp" || kindValue === "sor" || kindValue === "ktp" || kindValue === "test" || kindValue === "text" ? kindValue : undefined;
   const page = Number.parseInt(first(params.page) ?? "1", 10);
   return { q, kind, page: Number.isFinite(page) && page >= 1 && page <= 1000 ? page : 1 };
 }

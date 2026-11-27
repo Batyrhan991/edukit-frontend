@@ -73,6 +73,9 @@ async function TeacherHome() {
             <Button asChild>
               <Link href={`/${locale}/teacher/ktp`}>{t.cabinet.ktpLink}</Link>
             </Button>
+            <Button asChild>
+              <Link href={`/${locale}/teacher/test`}>{t.cabinet.testLink}</Link>
+            </Button>
             <Button asChild variant="secondary">
               <Link href={`/${locale}/teacher/documents`}>{t.cabinet.documentsLink}</Link>
             </Button>

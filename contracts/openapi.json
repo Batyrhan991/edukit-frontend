@@ -622,6 +622,66 @@
         }
       }
     },
+    "/api/v1/generators/test": {
+      "post": {
+        "tags": [
+          "Generators"
+        ],
+        "summary": "Запустить генерацию теста (виды вопросов — single, multiple, true_false, fill, matching, open, extended). Заголовок Idempotency-Key обязателен.",
+        "operationId": "GenerateTest",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/generations": {
       "get": {
         "tags": [
@@ -2525,6 +2585,16 @@
                 "$ref": "#/components/schemas/KtpPlan"
               }
             ]
+          },
+          "test": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/QuizDocument"
+              }
+            ]
           }
         }
       },
@@ -3172,6 +3242,189 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "QuizDocument": {
+        "required": [
+          "title",
+          "subject",
+          "grade",
+          "topic",
+          "questions",
+          "learningObjectives",
+          "sources",
+          "warnings"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuizQuestion"
+            }
+          },
+          "learningObjectives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KspLearningObjective"
+            }
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KspSource"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "QuizPair": {
+        "required": [
+          "left",
+          "right"
+        ],
+        "type": "object",
+        "properties": {
+          "left": {
+            "type": "string"
+          },
+          "right": {
+            "type": "string"
+          }
+        }
+      },
+      "QuizQuestion": {
+        "required": [
+          "number",
+          "type",
+          "text",
+          "options",
+          "correct",
+          "answer",
+          "pairs",
+          "points",
+          "explanation"
+        ],
+        "type": "object",
+        "properties": {
+          "number": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "type": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "correct": {
+            "type": "array",
+            "items": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
+            }
+          },
+          "answer": {
+            "type": "string"
+          },
+          "pairs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuizPair"
+            }
+          },
+          "points": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "explanation": {
+            "type": "string"
+          }
+        }
+      },
+      "QuizRequest": {
+        "required": [
+          "subject",
+          "grade",
+          "topic",
+          "questionCount",
+          "types",
+          "difficulty",
+          "notes",
+          "language"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "questionCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "difficulty": {
+            "type": "string"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "language": {
+            "type": "string"
           }
         }
       },
