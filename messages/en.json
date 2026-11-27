@@ -225,7 +225,8 @@
     "sorLink": "Create an assessment",
     "ktpLink": "Create KTP",
     "testLink": "Create test",
-    "worksheetLink": "Create worksheet"
+    "worksheetLink": "Create worksheet",
+    "homeworkLink": "Create homework"
   },
   "sessions": {
     "title": "My sign-ins",
@@ -438,7 +439,8 @@
       "kindSor": "Assessment",
       "kindKtp": "KTP",
       "kindTest": "Test",
-      "kindWorksheet": "Worksheet"
+      "kindWorksheet": "Worksheet",
+      "kindHomework": "Homework"
     }
   },
   "sor": {
@@ -791,6 +793,46 @@
     "theoryTitle": "Remember",
     "tasksTitle": "Tasks",
     "reflectionTitle": "Rate yourself",
+    "taskTitle": "Task {n}",
+    "keyDoc": "Key: {title}",
+    "errors": {
+      "insufficient": "Not enough credits for generation.",
+      "tooMany": "Two generations are already running. Wait for them to finish.",
+      "conflict": "This request was already sent with different parameters. Refresh the page.",
+      "provider": "AI is unavailable right now. Credits returned — try again later.",
+      "invalid": "Choose at least one question type.",
+      "timeout": "AI did not answer in time. Credits returned.",
+      "interrupted": "Generation was interrupted. Credits returned.",
+      "busy": "The service is busy. Credits returned — try again in a minute.",
+      "personal_data": "Looks like personal data (IIN, phone or email). Please remove it.",
+      "required": "Fill in this field.",
+      "too_long": "The text is too long.",
+      "out_of_range": "The value is out of the allowed range.",
+      "forbidden": "AI generators are available to teachers only.",
+      "disabled": "AI generators are turned off for now.",
+      "unknown": "Could not create the assessment. Please try again.",
+      "budget": "The monthly AI limit is used up. Credits returned — try next month or contact the administrator.",
+      "too_many": "More types than questions. Add questions or remove types."
+    }
+  },
+  "homework": {
+    "title": "Homework",
+    "intro": "Set the lesson topic — the AI writes homework at three levels: A — basic, B — medium, C — creative. Students choose a level or you set it. The answer key is separate. Do not include student data.",
+    "back": "← Back to dashboard",
+    "price": "Homework cost: {price}",
+    "perLevel": "Tasks per level (1–4)",
+    "submit": "Create homework",
+    "generating": "Creating homework…",
+    "mock": "Sample without AI: tasks are a template.",
+    "saved": "Two documents saved.",
+    "openStudent": "Student sheet",
+    "openKey": "Teacher's key",
+    "levelTitle": "Level {level} — {name}",
+    "levelNames": {
+      "A": "basic",
+      "B": "medium",
+      "C": "creative"
+    },
     "taskTitle": "Task {n}",
     "keyDoc": "Key: {title}",
     "errors": {
