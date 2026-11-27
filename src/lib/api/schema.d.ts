@@ -828,10 +828,12 @@ export interface components {
             creditsCharged: number | string;
             mock: boolean;
             answer: null | components["schemas"]["ChatAnswer"];
+            webSearch?: null | string;
         };
         ChatSourceRef: {
             id: string;
             title: string;
+            url?: null | string;
         };
         CopyDocumentRequest: {
             title: string;
@@ -1054,6 +1056,8 @@ export interface components {
         };
         SendChatMessageRequest: {
             text: string;
+            /** @default false */
+            webSearch: boolean;
         };
         SessionResponse: {
             /** Format: uuid */

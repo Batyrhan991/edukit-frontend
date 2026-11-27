@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, BookOpen, FileText, LoaderCircle, MessageSquarePlus, Paperclip, Plus, Send, Sparkles, Trash2, TriangleAlert, X } from "lucide-react";
+import { ArrowLeft, BookOpen, ExternalLink, FileText, Globe, LoaderCircle, MessageSquarePlus, Paperclip, Plus, Send, Sparkles, Trash2, TriangleAlert, X } from "lucide-react";
 import { Fragment, useCallback, useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { intlLocale, type Locale } from "@/i18n/config";
@@ -16,6 +16,7 @@ import {
   MAX_MEMORY,
   MAX_QUESTION,
   parseAnswer,
+  safeLink,
   validateFile,
   validateText,
   type Attachment,
@@ -219,6 +220,9 @@ function Conversation({ t, locale, id, onBack }: { t: T; locale: Locale; id: str
   const [sending, setSending] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [web, setWeb] = useState(false);
+  const [webPrice, setWebPrice] = useState<number | null>(null);
+  const webId = useId();
   const fileRef = useRef<HTMLInputElement>(null);
   const keyRef = useRef(newKey());
   const endRef = useRef<HTMLDivElement>(null);
@@ -243,6 +247,20 @@ function Conversation({ t, locale, id, onBack }: { t: T; locale: Locale; id: str
   }, [load]);
 
   useEffect(() => {
+    // Цена вопроса с поиском — из таблицы цен сервера.
+    let alive = true;
+    void api("GET", "/credits").then(async (response) => {
+      if (!alive || !response.ok) return;
+      const credits = (await response.json()) as Credits;
+      const price = credits.prices.find((p) => p.tool === "chat.web")?.credits;
+      if (price !== undefined) setWebPrice(Number(price));
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!waiting) return;
     const timer = setTimeout(() => void load(), POLL_MS);
     return () => clearTimeout(timer);
@@ -259,7 +277,7 @@ function Conversation({ t, locale, id, onBack }: { t: T; locale: Locale; id: str
     setError(local);
     if (local || sending || waiting) return;
     setSending(true);
-    const response = await api("POST", `/chat/conversations/${id}/messages`, { text: text.trim() }, { "Idempotency-Key": keyRef.current });
+    const response = await api("POST", `/chat/conversations/${id}/messages`, { text: text.trim(), webSearch: web }, { "Idempotency-Key": keyRef.current });
     setSending(false);
     if (response.ok) {
       setText("");
@@ -421,6 +439,7 @@ function Conversation({ t, locale, id, onBack }: { t: T; locale: Locale; id: str
           disabled={!conversation}
           data-testid="chat-input"
         />
+        <p className="text-xs text-muted-foreground">{web ? fmt(t.webSearchHint, { price: String(webPrice ?? "") }) : t.sendHint}</p>
         <div className="flex items-center gap-2">
           <input
             ref={fileRef}
@@ -448,7 +467,22 @@ function Conversation({ t, locale, id, onBack }: { t: T; locale: Locale; id: str
           >
             <Paperclip aria-hidden />
           </Button>
-          <p className="flex-1 text-xs text-muted-foreground">{t.sendHint}</p>
+          <label htmlFor={webId} className="flex flex-1 cursor-pointer items-center gap-1.5 text-xs" title={fmt(t.webSearchHint, { price: String(webPrice ?? "") })}>
+            <input
+              id={webId}
+              type="checkbox"
+              checked={web}
+              onChange={(e) => {
+                setWeb(e.target.checked);
+                keyRef.current = newKey(); // с поиском и без — разные попытки
+              }}
+              disabled={!conversation}
+              data-testid="chat-web"
+            />
+            <Globe aria-hidden className="size-3.5 text-primary" />
+            <span>{t.webSearch}</span>
+            {webPrice !== null ? <span className="text-muted-foreground">· {fmt(t.webPrice, { price: String(webPrice) })}</span> : null}
+          </label>
           <Button type="submit" disabled={!conversation || sending || waiting} data-testid="chat-send">
             {sending ? <LoaderCircle aria-hidden className="animate-spin motion-reduce:animate-none" /> : <Send aria-hidden />}
             {t.send}
@@ -586,13 +620,37 @@ function MessageView({ t, message, onCancel, onRemember }: { t: T; message: Chat
               ))}
             </div>
           ) : null}
+          {message.webSearch === "limit" || message.webSearch === "unavailable" ? (
+            <p className="text-xs text-muted-foreground">{message.webSearch === "limit" ? t.webLimit : t.webUnavailable}</p>
+          ) : null}
+          {message.webSearch === "mock" ? <p className="text-xs text-muted-foreground">{t.webSample}</p> : null}
           {answer.sources.length > 0 ? (
             <div className="text-xs text-muted-foreground">
               <p className="font-medium">{t.sources}</p>
-              <ul className="list-disc pl-4">
-                {answer.sources.map((s) => (
-                  <li key={s.id}>{s.title}</li>
-                ))}
+              <ul className="list-disc space-y-0.5 pl-4" data-testid="chat-sources">
+                {answer.sources.map((s) => {
+                  const link = safeLink(s.url);
+                  return (
+                    <li key={s.id}>
+                      {link ? (
+                        <a
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer nofollow"
+                          referrerPolicy="no-referrer"
+                          className="inline-flex items-baseline gap-1 text-primary underline-offset-2 hover:underline"
+                          aria-label={fmt(t.openLink, { title: s.title })}
+                        >
+                          <span>{s.title}</span>
+                          <span className="text-muted-foreground">({link.host})</span>
+                          <ExternalLink aria-hidden className="size-3 self-center" />
+                        </a>
+                      ) : (
+                        s.title
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ) : null}

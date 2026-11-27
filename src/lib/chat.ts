@@ -182,3 +182,15 @@ export function fileSize(bytes: number, locale: string, units: { kb: string; mb:
   const format = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
   return bytes < 1024 * 1024 ? `${format.format(Math.max(1, Math.round(bytes / 1024)))} ${units.kb}` : `${format.format(bytes / 1024 / 1024)} ${units.mb}`;
 }
+
+/** Ссылка источника показывается, только если это http/https (защита на случай неожиданных данных). */
+export function safeLink(url: string | null | undefined): { href: string; host: string } | null {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    return { href: parsed.href, host: parsed.hostname.replace(/^www\./, "") };
+  } catch {
+    return null;
+  }
+}

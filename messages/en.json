@@ -598,6 +598,13 @@
     "fileDelete": "Remove “{name}”",
     "fileTruncated": "read partially",
     "kb": "KB",
-    "mb": "MB"
+    "mb": "MB",
+    "webSearch": "Search the web",
+    "webSearchHint": "The AI finds up-to-date information and gives links. The question costs {price} cr. Do not include personal data.",
+    "webSample": "Sample search results, not the real web",
+    "webLimit": "The web search limit is used up — answered without the web at the normal price.",
+    "webUnavailable": "Web search is unavailable right now — answered without the web at the normal price.",
+    "openLink": "{title} (opens in a new tab)",
+    "webPrice": "{price} cr."
   }
 }

@@ -2041,6 +2041,12 @@
                 "$ref": "#/components/schemas/ChatAnswer"
               }
             ]
+          },
+          "webSearch": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -2056,6 +2062,12 @@
           },
           "title": {
             "type": "string"
+          },
+          "url": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -2990,6 +3002,10 @@
         "properties": {
           "text": {
             "type": "string"
+          },
+          "webSearch": {
+            "type": "boolean",
+            "default": false
           }
         }
       },

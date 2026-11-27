@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chatErrorKey, fileSize, inline, limitKey, parseAnswer, validateFile, validateText } from "@/lib/chat";
+import { chatErrorKey, fileSize, inline, limitKey, parseAnswer, safeLink, validateFile, validateText } from "@/lib/chat";
 import en from "../../messages/en.json";
 import kk from "../../messages/kk.json";
 import ru from "../../messages/ru.json";
@@ -80,5 +80,16 @@ describe("chat files", () => {
     expect(fileSize(300, "ru-RU", units)).toBe("1 КБ");
     expect(fileSize(20 * 1024, "ru-RU", units)).toBe("20 КБ");
     expect(fileSize(3.5 * 1024 * 1024, "ru-RU", units)).toBe("3,5 МБ");
+  });
+});
+
+describe("web sources", () => {
+  it("links only http and https addresses", () => {
+    expect(safeLink("https://www.gov.kz/memleket/entities/edu")).toEqual({ href: "https://www.gov.kz/memleket/entities/edu", host: "gov.kz" });
+    expect(safeLink("http://example.org/a")?.host).toBe("example.org");
+    expect(safeLink("javascript:alert(1)")).toBeNull();
+    expect(safeLink("data:text/html,<b>x</b>")).toBeNull();
+    expect(safeLink("/relative")).toBeNull();
+    expect(safeLink(null)).toBeNull();
   });
 });
