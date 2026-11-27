@@ -372,6 +372,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/generators/homework": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Запустить генерацию домашнего задания трёх уровней (A, B, C). Заголовок Idempotency-Key обязателен. */
+        post: operations["GenerateHomework"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/generations": {
         parameters: {
             query?: never;
@@ -985,6 +1002,32 @@ export interface components {
             ktp?: null | components["schemas"]["KtpPlan"];
             test?: null | components["schemas"]["QuizDocument"];
             worksheet?: null | components["schemas"]["WorksheetDocument"];
+            homework?: null | components["schemas"]["HomeworkDocument"];
+        };
+        HomeworkDocument: {
+            title: string;
+            subject: string;
+            grade: string;
+            topic: string;
+            instructions: string;
+            levels: components["schemas"]["HomeworkLevel"][];
+            learningObjectives: components["schemas"]["KspLearningObjective"][];
+            sources: components["schemas"]["KspSource"][];
+            warnings: string[];
+        };
+        HomeworkLevel: {
+            level: string;
+            description: string;
+            tasks: components["schemas"]["QuizQuestion"][];
+        };
+        HomeworkRequest: {
+            subject: string;
+            grade: string;
+            topic: string;
+            /** Format: int32 */
+            tasksPerLevel: number | string;
+            notes: null | string;
+            language: string;
         };
         HttpValidationProblemDetails: {
             type?: null | string;
@@ -1891,6 +1934,50 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["WorksheetRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+        };
+    };
+    GenerateHomework: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HomeworkRequest"];
             };
         };
         responses: {
