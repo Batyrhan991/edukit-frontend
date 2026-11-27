@@ -320,56 +320,7 @@ function QuizView({ t, test, language }: { t: T; test: QuizDocument; language: L
           {showKey ? t.hideKey : t.showKey}
         </Button>
       </div>
-      <ol className="space-y-4">
-        {test.questions.map((q) => (
-          <li key={String(q.number)} className="space-y-2 border border-border bg-card p-4" data-testid="quiz-question" data-type={q.type}>
-            <p className="flex flex-wrap items-baseline justify-between gap-2">
-              <span className="font-semibold">{fmt(t.questionTitle, { n: String(q.number) })}</span>
-              <span className="text-sm text-muted-foreground">
-                {t.types[q.type as keyof T["types"]] ?? q.type} · {fmt(t.points, { n: String(q.points) })}
-              </span>
-            </p>
-            <p className="whitespace-pre-line">{q.text}</p>
-            {q.type === "single" || q.type === "multiple" ? (
-              <ul className="space-y-1">
-                {q.options.map((o, i) => (
-                  <li key={i}>
-                    {optionLetter(i, language)}) {o}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-            {q.type === "matching" ? (
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                <ol className="list-decimal space-y-1 pl-5">
-                  {q.pairs.map((p, i) => (
-                    <li key={i}>{p.left}</li>
-                  ))}
-                </ol>
-                <ul className="space-y-1">
-                  {shuffledRight(q).map((r, i) => (
-                    <li key={i}>
-                      {optionLetter(i, language)}) {r}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
-            {showKey ? (
-              <div className="space-y-1 border-t border-border pt-2 text-sm" data-testid="quiz-key">
-                <p className="whitespace-pre-line">
-                  <span className="font-medium">{t.answer}:</span> {answerText(q, t, language)}
-                </p>
-                {q.explanation ? (
-                  <p>
-                    <span className="font-medium">{t.explanation}:</span> {q.explanation}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-          </li>
-        ))}
-      </ol>
+      <QuestionCards t={t} questions={test.questions} language={language} showKey={showKey} titleTemplate={t.questionTitle} />
       {test.sources.length > 0 ? (
         <section className="text-sm text-muted-foreground">
           <h3 className="font-medium">{t.sources}</h3>
@@ -381,5 +332,73 @@ function QuizView({ t, test, language }: { t: T; test: QuizDocument; language: L
         </section>
       ) : null}
     </article>
+  );
+}
+
+/** Карточки заданий (общие для тестов и рабочих листов): текст, варианты с буквами, соответствие; ключ — по флагу. */
+export function QuestionCards({
+  t,
+  questions,
+  language,
+  showKey,
+  titleTemplate,
+}: {
+  t: T;
+  questions: readonly QuizDocument["questions"][number][];
+  language: Locale;
+  showKey: boolean;
+  titleTemplate: string;
+}) {
+  return (
+    <ol className="space-y-4">
+      {questions.map((q) => (
+        <li key={String(q.number)} className="space-y-2 border border-border bg-card p-4" data-testid="quiz-question" data-type={q.type}>
+          <p className="flex flex-wrap items-baseline justify-between gap-2">
+            <span className="font-semibold">{fmt(titleTemplate, { n: String(q.number) })}</span>
+            <span className="text-sm text-muted-foreground">
+              {t.types[q.type as keyof T["types"]] ?? q.type} · {fmt(t.points, { n: String(q.points) })}
+            </span>
+          </p>
+          <p className="whitespace-pre-line">{q.text}</p>
+          {q.type === "single" || q.type === "multiple" ? (
+            <ul className="space-y-1">
+              {q.options.map((o, i) => (
+                <li key={i}>
+                  {optionLetter(i, language)}) {o}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {q.type === "matching" ? (
+            <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
+              <ol className="list-decimal space-y-1 pl-5">
+                {q.pairs.map((p, i) => (
+                  <li key={i}>{p.left}</li>
+                ))}
+              </ol>
+              <ul className="space-y-1">
+                {shuffledRight(q).map((r, i) => (
+                  <li key={i}>
+                    {optionLetter(i, language)}) {r}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+          {showKey ? (
+            <div className="space-y-1 border-t border-border pt-2 text-sm" data-testid="quiz-key">
+              <p className="whitespace-pre-line">
+                <span className="font-medium">{t.answer}:</span> {answerText(q, t, language)}
+              </p>
+              {q.explanation ? (
+                <p>
+                  <span className="font-medium">{t.explanation}:</span> {q.explanation}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </li>
+      ))}
+    </ol>
   );
 }

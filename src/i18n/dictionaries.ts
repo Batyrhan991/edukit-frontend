@@ -40,6 +40,12 @@ export async function getKspLabels(): Promise<Record<Locale, Dictionary["ksp"]>>
   return { kk: kk.ksp, ru: ru.ksp, en: en.ksp };
 }
 
+/** Подписи рабочего листа на всех языках: свои и общие подписи заданий (из тестов). */
+export async function getWorksheetLabels(): Promise<Record<Locale, { ws: Dictionary["worksheet"]; quiz: Dictionary["quiz"] }>> {
+  const [kk, ru, en] = await Promise.all([dictionaries.kk(), dictionaries.ru(), dictionaries.en()]);
+  return { kk: { ws: kk.worksheet, quiz: kk.quiz }, ru: { ws: ru.worksheet, quiz: ru.quiz }, en: { ws: en.worksheet, quiz: en.quiz } };
+}
+
 /** Подписи теста на всех языках: документы получают подписи на языке самого теста. */
 export async function getQuizLabels(): Promise<Record<Locale, Dictionary["quiz"]>> {
   const [kk, ru, en] = await Promise.all([dictionaries.kk(), dictionaries.ru(), dictionaries.en()]);

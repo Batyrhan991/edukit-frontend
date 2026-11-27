@@ -84,28 +84,31 @@ function header(test: QuizDocument, l: QuizLabels): DocNode[] {
 /** Ученический вариант: вопросы, варианты, пропуски и колонки соответствия — без ответов и пояснений. */
 export function quizStudentDoc(test: QuizDocument, l: QuizLabels, locale: string): DocNode {
   const content: DocNode[] = [heading(1, test.title), ...header(test, l), paragraph(text(l.studentLine))];
-  for (const q of test.questions) {
-    content.push(heading(3, `${fmt(l.questionTitle, { n: n(q.number) })} (${fmt(l.points, { n: n(q.points) })})`));
-    content.push(paragraph(text(q.text)));
-    if (q.type === "single" || q.type === "multiple") {
-      content.push(paragraph(text(q.type === "single" ? l.chooseOne : l.chooseMany, true)));
-      content.push(bullets(q.options.map((o, i) => `${optionLetter(i, locale)}) ${o}`)));
-    } else if (q.type === "true_false") {
-      content.push(paragraph(text(`${l.trueLabel} / ${l.falseLabel}`)));
-    } else if (q.type === "matching") {
-      const right = shuffledRight(q);
-      content.push({
-        type: "table",
-        content: q.pairs.map((p, i) => ({
-          type: "tableRow",
-          content: [cell("tableCell", `${i + 1}. ${p.left}`), cell("tableCell", `${optionLetter(i, locale)}) ${right[i]}`)],
-        })),
-      });
-    } else if (q.type === "open" || q.type === "extended") {
-      content.push(paragraph(text(l.answerLine)));
-    }
-  }
+  for (const q of test.questions) content.push(...questionNodes(q, l, locale, l.questionTitle));
   return { type: "doc", content };
+}
+
+/** Одно задание для ученика (без ответа): заголовок с баллами, текст, варианты, колонки соответствия, строка ответа. */
+export function questionNodes(q: QuizQuestion, l: QuizLabels, locale: string, titleTemplate: string): DocNode[] {
+  const content: DocNode[] = [heading(3, `${fmt(titleTemplate, { n: n(q.number) })} (${fmt(l.points, { n: n(q.points) })})`), paragraph(text(q.text))];
+  if (q.type === "single" || q.type === "multiple") {
+    content.push(paragraph(text(q.type === "single" ? l.chooseOne : l.chooseMany, true)));
+    content.push(bullets(q.options.map((o, i) => `${optionLetter(i, locale)}) ${o}`)));
+  } else if (q.type === "true_false") {
+    content.push(paragraph(text(`${l.trueLabel} / ${l.falseLabel}`)));
+  } else if (q.type === "matching") {
+    const right = shuffledRight(q);
+    content.push({
+      type: "table",
+      content: q.pairs.map((p, i) => ({
+        type: "tableRow",
+        content: [cell("tableCell", `${i + 1}. ${p.left}`), cell("tableCell", `${optionLetter(i, locale)}) ${right[i]}`)],
+      })),
+    });
+  } else if (q.type === "open" || q.type === "extended") {
+    content.push(paragraph(text(l.answerLine)));
+  }
+  return content;
 }
 
 /** Ключ учителя: правильные ответы, критерии и баллы, цели обучения. */
@@ -113,11 +116,18 @@ export function quizKeyDoc(test: QuizDocument, l: QuizLabels, locale: string): D
   const total = test.questions.reduce((sum, q) => sum + Number(q.points), 0);
   const content: DocNode[] = [heading(1, fmt(l.keyDoc, { title: test.title })), ...header(test, l), paragraph(text(fmt(l.totalLine, { n: String(total) })))];
   if (test.learningObjectives.length > 0) content.push(heading(2, l.learningObjectives), bullets(test.learningObjectives.map((o) => `${o.code} ${o.text}`)));
-  content.push({
+  content.push(answerTable(test.questions, l, locale));
+  if (test.sources.length > 0) content.push(heading(2, l.sources), bullets(test.sources.map((s) => s.title)));
+  return { type: "doc", content };
+}
+
+/** Таблица ключа: №, вид, правильный ответ с пояснением, баллы. */
+export function answerTable(questions: readonly QuizQuestion[], l: QuizLabels, locale: string): DocNode {
+  return {
     type: "table",
     content: [
       { type: "tableRow", content: [l.colNumber, l.colType, l.colAnswer, l.colPoints].map((h) => cell("tableHeader", h)) },
-      ...test.questions.map((q) => ({
+      ...questions.map((q) => ({
         type: "tableRow",
         content: [
           n(q.number),
@@ -127,7 +137,5 @@ export function quizKeyDoc(test: QuizDocument, l: QuizLabels, locale: string): D
         ].map((v) => cell("tableCell", v)),
       })),
     ],
-  });
-  if (test.sources.length > 0) content.push(heading(2, l.sources), bullets(test.sources.map((s) => s.title)));
-  return { type: "doc", content };
+  };
 }

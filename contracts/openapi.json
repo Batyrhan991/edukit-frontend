@@ -682,6 +682,66 @@
         }
       }
     },
+    "/api/v1/generators/worksheet": {
+      "post": {
+        "tags": [
+          "Generators"
+        ],
+        "summary": "Запустить генерацию рабочего листа (памятка, задания разных видов, самооценка). Заголовок Idempotency-Key обязателен.",
+        "operationId": "GenerateWorksheet",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorksheetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationResponse"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/generations": {
       "get": {
         "tags": [
@@ -2595,6 +2655,16 @@
                 "$ref": "#/components/schemas/QuizDocument"
               }
             ]
+          },
+          "worksheet": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/WorksheetDocument"
+              }
+            ]
           }
         }
       },
@@ -3864,6 +3934,112 @@
             "format": "uuid"
           },
           "token": {
+            "type": "string"
+          }
+        }
+      },
+      "WorksheetDocument": {
+        "required": [
+          "title",
+          "subject",
+          "grade",
+          "topic",
+          "theory",
+          "tasks",
+          "reflection",
+          "learningObjectives",
+          "sources",
+          "warnings"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "theory": {
+            "type": "string"
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/QuizQuestion"
+            }
+          },
+          "reflection": {
+            "type": "string"
+          },
+          "learningObjectives": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KspLearningObjective"
+            }
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KspSource"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "WorksheetRequest": {
+        "required": [
+          "subject",
+          "grade",
+          "topic",
+          "taskCount",
+          "difficulty",
+          "theory",
+          "notes",
+          "language"
+        ],
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "taskCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "difficulty": {
+            "type": "string"
+          },
+          "theory": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "language": {
             "type": "string"
           }
         }
