@@ -321,6 +321,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/generators/ktp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Запустить генерацию КТП на четверть или год (даты уроков — по календарю учебного года). Заголовок Idempotency-Key обязателен. */
+        post: operations["GenerateKtp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/generations": {
         parameters: {
             query?: never;
@@ -931,6 +948,7 @@ export interface components {
             finishedAt: null | string;
             ksp: null | components["schemas"]["KspDocument"];
             sor?: null | components["schemas"]["SorDocument"];
+            ktp?: null | components["schemas"]["KtpPlan"];
         };
         HttpValidationProblemDetails: {
             type?: null | string;
@@ -996,6 +1014,39 @@ export interface components {
         KspSource: {
             id: string;
             title: string;
+        };
+        KtpPlan: {
+            title: string;
+            subject: string;
+            grade: string;
+            academicYear: string;
+            period: string;
+            rows: components["schemas"]["KtpPlanRow"][];
+            sources: components["schemas"]["KspSource"][];
+            warnings: string[];
+        };
+        KtpPlanRow: {
+            /** Format: int32 */
+            number: number | string;
+            /** Format: int32 */
+            quarter: number | string;
+            /** Format: date */
+            date: string;
+            section: string;
+            topic: string;
+            objectives: string[];
+            /** Format: int32 */
+            hours: number | string;
+            notes: null | string;
+        };
+        KtpRequest: {
+            subject: string;
+            grade: string;
+            academicYear: string;
+            period: string;
+            weekdays: (number | string)[];
+            notes: null | string;
+            language: string;
         };
         LoginRequest: {
             login: string;
@@ -1611,6 +1662,50 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["SorRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+        };
+    };
+    GenerateKtp: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KtpRequest"];
             };
         };
         responses: {
