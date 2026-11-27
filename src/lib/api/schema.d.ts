@@ -338,6 +338,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/generators/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Запустить генерацию теста (виды вопросов — single, multiple, true_false, fill, matching, open, extended). Заголовок Idempotency-Key обязателен. */
+        post: operations["GenerateTest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/generations": {
         parameters: {
             query?: never;
@@ -949,6 +966,7 @@ export interface components {
             ksp: null | components["schemas"]["KspDocument"];
             sor?: null | components["schemas"]["SorDocument"];
             ktp?: null | components["schemas"]["KtpPlan"];
+            test?: null | components["schemas"]["QuizDocument"];
         };
         HttpValidationProblemDetails: {
             type?: null | string;
@@ -1094,6 +1112,44 @@ export interface components {
         PasswordResetRequest: {
             email: string;
             locale: null | string;
+        };
+        QuizDocument: {
+            title: string;
+            subject: string;
+            grade: string;
+            topic: string;
+            questions: components["schemas"]["QuizQuestion"][];
+            learningObjectives: components["schemas"]["KspLearningObjective"][];
+            sources: components["schemas"]["KspSource"][];
+            warnings: string[];
+        };
+        QuizPair: {
+            left: string;
+            right: string;
+        };
+        QuizQuestion: {
+            /** Format: int32 */
+            number: number | string;
+            type: string;
+            text: string;
+            options: string[];
+            correct: (number | string)[];
+            answer: string;
+            pairs: components["schemas"]["QuizPair"][];
+            /** Format: int32 */
+            points: number | string;
+            explanation: string;
+        };
+        QuizRequest: {
+            subject: string;
+            grade: string;
+            topic: string;
+            /** Format: int32 */
+            questionCount: number | string;
+            types: string[];
+            difficulty: string;
+            notes: null | string;
+            language: string;
         };
         RecoveryCodesResponse: {
             recoveryCodes: string[];
@@ -1706,6 +1762,50 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["KtpRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+        };
+    };
+    GenerateTest: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuizRequest"];
             };
         };
         responses: {

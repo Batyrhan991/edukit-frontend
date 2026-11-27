@@ -100,7 +100,7 @@ export async function getCredits(): Promise<ApiResult<Credits>> {
 }
 
 /** Личная библиотека: поиск по названию, фильтр по виду, страница (offset/limit до 100). */
-export async function listDocuments(query: { q?: string; kind?: "ksp" | "sor" | "ktp" | "text"; offset?: number; limit?: number } = {}): Promise<ApiResult<DocumentPage>> {
+export async function listDocuments(query: { q?: string; kind?: "ksp" | "sor" | "ktp" | "test" | "text"; offset?: number; limit?: number } = {}): Promise<ApiResult<DocumentPage>> {
   const token = await sessionToken();
   if (!token) return { ok: false, reason: "unauthorized", status: 401 };
   return call(() => apiClient(token).GET("/api/v1/documents", { params: { query }, signal: AbortSignal.timeout(5000) }));
