@@ -355,6 +355,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/generators/worksheet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Запустить генерацию рабочего листа (памятка, задания разных видов, самооценка). Заголовок Idempotency-Key обязателен. */
+        post: operations["GenerateWorksheet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/generations": {
         parameters: {
             query?: never;
@@ -967,6 +984,7 @@ export interface components {
             sor?: null | components["schemas"]["SorDocument"];
             ktp?: null | components["schemas"]["KtpPlan"];
             test?: null | components["schemas"]["QuizDocument"];
+            worksheet?: null | components["schemas"]["WorksheetDocument"];
         };
         HttpValidationProblemDetails: {
             type?: null | string;
@@ -1255,6 +1273,29 @@ export interface components {
             /** Format: uuid */
             userId: string;
             token: string;
+        };
+        WorksheetDocument: {
+            title: string;
+            subject: string;
+            grade: string;
+            topic: string;
+            theory: string;
+            tasks: components["schemas"]["QuizQuestion"][];
+            reflection: string;
+            learningObjectives: components["schemas"]["KspLearningObjective"][];
+            sources: components["schemas"]["KspSource"][];
+            warnings: string[];
+        };
+        WorksheetRequest: {
+            subject: string;
+            grade: string;
+            topic: string;
+            /** Format: int32 */
+            taskCount: number | string;
+            difficulty: string;
+            theory: boolean;
+            notes: null | string;
+            language: string;
         };
     };
     responses: never;
@@ -1806,6 +1847,50 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["QuizRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerationResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["HttpValidationProblemDetails"];
+                };
+            };
+        };
+    };
+    GenerateWorksheet: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorksheetRequest"];
             };
         };
         responses: {

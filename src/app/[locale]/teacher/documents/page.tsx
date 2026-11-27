@@ -94,6 +94,7 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
             <option value="sor">{l.kindSor}</option>
             <option value="ktp">{l.kindKtp}</option>
             <option value="test">{l.kindTest}</option>
+            <option value="worksheet">{l.kindWorksheet}</option>
             <option value="text">{l.kindText}</option>
           </select>
         </label>
@@ -125,7 +126,7 @@ async function Library({ searchParams }: { searchParams: SearchParams }) {
                 <span className="min-w-0">
                   <span className="block truncate font-medium">{d.title}</span>
                   <span className="block text-sm text-muted-foreground">
-                    {d.kind === "ksp" ? l.kindKsp : d.kind === "sor" ? l.kindSor : d.kind === "ktp" ? l.kindKtp : d.kind === "test" ? l.kindTest : l.kindText} ·{" "}
+                    {d.kind === "ksp" ? l.kindKsp : d.kind === "sor" ? l.kindSor : d.kind === "ktp" ? l.kindKtp : d.kind === "test" ? l.kindTest : d.kind === "worksheet" ? l.kindWorksheet : l.kindText} ·{" "}
                     {fmt(t.documents.updated, { date: formatDateTime(d.updatedAt, intlLocale[locale]) })}
                   </span>
                 </span>
