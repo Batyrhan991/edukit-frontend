@@ -114,4 +114,26 @@ test.describe("AI assistant (live, sample AI)", () => {
     await panel.getByRole("button", { name: "Убрать файл «заметки.txt»" }).click();
     await expect(panel.getByTestId("chat-files")).toHaveCount(0);
   });
+
+  test("teacher searches the web: sample results with links, two credits", async ({ page }) => {
+    await signedInTeacher(page);
+    await page.getByTestId("chat-open").click();
+    const panel = page.getByTestId("chat-panel");
+    await expect(panel.getByTestId("chat-price")).toContainText("баланс 30 кр.");
+    await panel.getByRole("button", { name: "Новая беседа" }).click();
+
+    await panel.getByTestId("chat-web").check();
+    await expect(panel.getByText("Вопрос стоит 2 кр.")).toBeVisible();
+    await panel.getByTestId("chat-input").fill("Какие новости о школьной программе?");
+    await panel.getByTestId("chat-input").press("Enter");
+    const answer = panel.getByTestId("chat-answer");
+    await expect(answer).toContainText("Учебные результаты поиска", { timeout: 20_000 });
+    const link = answer.getByTestId("chat-sources").getByRole("link").first();
+    await expect(link).toHaveAttribute("href", /^https:\/\/example\.org\/edukit-sample\//);
+    await expect(link).toHaveAttribute("target", "_blank");
+    await expect(link).toHaveAttribute("rel", "noopener noreferrer nofollow");
+
+    await panel.getByRole("button", { name: "Все беседы" }).click();
+    await expect(panel.getByTestId("chat-price")).toContainText("баланс 29 кр.");
+  });
 });
